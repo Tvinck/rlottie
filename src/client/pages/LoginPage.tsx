@@ -94,17 +94,10 @@ export default function LoginPage() {
             {/* Email */}
             <div style={{ marginBottom: 16 }}>
               <label className="form-label">Email</label>
-              <div style={{ position: 'relative' }}>
-                <Mail
-                  size={14}
-                  style={{
-                    position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
-                    color: 'var(--text-muted)',
-                  }}
-                />
+              <div className="field-with-icon">
+                <Mail size={15} className="field-icon" />
                 <input
                   className="form-input"
-                  style={{ paddingLeft: 36 }}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -116,28 +109,21 @@ export default function LoginPage() {
             </div>
 
             {/* Password */}
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 18 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                 <label className="form-label" style={{ margin: 0 }}>Пароль</label>
                 <a
                   href="#"
-                  style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}
+                  style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}
                   onClick={(e) => { e.preventDefault(); alert('Восстановление пароля — TODO'); }}
                 >
                   Забыли?
                 </a>
               </div>
-              <div style={{ position: 'relative' }}>
-                <Lock
-                  size={14}
-                  style={{
-                    position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
-                    color: 'var(--text-muted)',
-                  }}
-                />
+              <div className="field-with-icon">
+                <Lock size={15} className="field-icon" />
                 <input
-                  className="form-input"
-                  style={{ paddingLeft: 36, paddingRight: 36 }}
+                  className="form-input has-action"
                   type={showPass ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -146,15 +132,11 @@ export default function LoginPage() {
                 />
                 <button
                   type="button"
+                  className="field-action"
                   onClick={() => setShowPass((v) => !v)}
-                  style={{
-                    position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--text-muted)', padding: 4, display: 'flex',
-                  }}
                   aria-label={showPass ? 'Скрыть пароль' : 'Показать пароль'}
                 >
-                  {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                  {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
             </div>
