@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BAZZAR — Сообщения</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .msg-layout { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 61px); }
+    .contacts { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); overflow-y: auto; padding: 12px; }
+    .contact-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius-sm); cursor: pointer; transition: background .15s; margin-bottom: 2px; }
+    .contact-item:hover, .contact-item.active { background: var(--bg-card2); }
+    .contact-item.active { border-left: 2px solid var(--accent); }
+    .contact-info { flex: 1; min-width: 0; }
+    .contact-name { font-size: 13px; font-weight: 500; }
+    .contact-last { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .contact-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .contact-time { font-size: 10px; color: var(--text-muted); }
+    .unread-badge { width: 16px; height: 16px; background: var(--accent); color: #0B0B14; font-size: 9px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .chat-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .msg-bubble { max-width: 65%; }
+    .msg-bubble.own { align-self: flex-end; }
+    .msg-bubble.other { align-self: flex-start; }
+    .bubble-text { padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.5; }
+    .msg-bubble.own .bubble-text { background: var(--accent); color: #0B0B14; border-radius: 14px 14px 4px 14px; }
+    .msg-bubble.other .bubble-text { background: var(--bg-card2); color: var(--text-primary); border-radius: 14px 14px 14px 4px; }
+    .bubble-meta { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+    .msg-bubble.own .bubble-meta { text-align: right; }
+    .chat-input-area { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0; }
+    .chat-input { flex: 1; background: var(--bg-card2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; color: var(--text-primary); font-size: 13px; font-family: inherit; outline: none; resize: none; }
+    .chat-input:focus { border-color: var(--accent); }
+    .contacts-search { position: relative; margin-bottom: 10px; }
+    .contacts-search input { width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px 8px 32px; color: var(--text-primary); font-size: 12px; font-family: inherit; outline: none; }
+    .contacts-search svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); }
+    .section-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; padding: 6px 10px 4px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar"></aside>
+  <div class="main" style="overflow:hidden;">
+    <div class="topbar">
+      <div class="topbar-title">Сообщения</div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="alert('Новый чат')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Новый чат
+        </button>
+      </div>
+    </div>
+    <div class="msg-layout">
+      <!-- Contacts -->
+      <div class="contacts">
+        <div class="contacts-search">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Поиск..." />
+        </div>
+        <div class="section-label">Каналы</div>
+        <div class="contact-item active" onclick="openChat('general')">
+          <div class="avatar" style="background:var(--accent-dim);color:var(--accent);font-size:12px;">#</div>
+          <div class="contact-info">
+            <div class="contact-name"># general</div>
+            <div class="contact-last">Алексей: Всем привет!</div>
+          </div>
+          <div class="contact-meta"><div class="contact-time">10:42</div><div class="unread-badge">3</div></div>
+        </div>
+        <div class="contact-item" onclick="openChat('dev')">
+          <div class="avatar" style="background:rgba(71,200,255,.15);color:#47C8FF;font-size:12px;">#</div>
+          <div class="contact-info">
+            <div class="contact-name"># разработка</div>
+            <div class="contact-last">Иван: PR готов к ревью</div>
+          </div>
+          <div class="contact-meta"><div class="contact-time">09:15</div></div>
+        </div>
+        <div class="contact-item" onclick="openChat('design')">
+          <div class="avatar" style="background:rgba(200,71,255,.15);color:#C847FF;font-size:12px;">#</div>
+          <div class="contact-info">
+            <div class="contact-name"># дизайн</div>
+            <div class="contact-last">Анна: Макеты готовы</div>
+          </div>
+          <div class="contact-meta"><div class="contact-time">вчера</div></div>
+        </div>
+        <div class="section-label" style="margin-top:8px;">Личные сообщения</div>
+        ${['Мария С.','Иван П.','Анна К.','Дмитрий Н.','Елена Ж.'].map((n,i)=>`
+        <div class="contact-item" onclick="openChat('${n}')">
+          <div style="position:relative;flex-shrink:0;">
+            <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">${n.split(' ').map(w=>w[0]).join('')}</div>
+            ${i<3?'<div style="position:absolute;bottom:0;right:0;width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid var(--bg-secondary);"></div>':''}
+          </div>
+          <div class="contact-info">
+            <div class="contact-name">${n}</div>
+            <div class="contact-last">${['Окей, понял!','Смотрю PR сейчас','Спасибо!','Буду через час','Проверила'][i]}</div>
+          </div>
+          <div class="contact-meta"><div class="contact-time">${['11:02','10:45','вчера','вчера','пн'][i]}</div>${i===0?'<div class="unread-badge">1</div>':''}</div>
+        </div>`).join('')}
+      </div>
+
+      <!-- Chat -->
+      <div class="chat-area">
+        <div class="chat-header">
+          <div class="avatar" style="background:var(--accent-dim);color:var(--accent);font-size:12px;">#</div>
+          <div>
+            <div style="font-size:14px;font-weight:600;"># general</div>
+            <div style="font-size:11px;color:var(--text-muted);">24 участника · 12 онлайн</div>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-area">
+          <textarea class="chat-input" rows="1" placeholder="Написать в #general..." id="msgInput" onkeydown="sendOnEnter(event)"></textarea>
+          <button class="btn btn-primary" onclick="sendMessage()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+<script>
+  initNav('messages');
+
+  const messages = [
+    {own:false,name:'Алексей К.',text:'Всем привет! Напоминаю — сегодня в 15:00 стендап.',time:'09:00'},
+    {own:false,name:'Мария С.',text:'Буду. Подготовлю отчёт по задачам.',time:'09:05'},
+    {own:true,name:'Вы',text:'Хорошо, я тоже буду. Есть вопросы по деплою.',time:'09:07'},
+    {own:false,name:'Иван П.',text:'PR на интеграцию платёжки готов к ревью — https://github.com/bazzar/app/pull/142',time:'09:15'},
+    {own:false,name:'Елена Ж.',text:'Посмотрю в первой половине дня. Есть пара комментов по тестам.',time:'09:18'},
+    {own:true,name:'Вы',text:'Иван, я тоже гляну. Нужно до завтра смержить.',time:'09:20'},
+    {own:false,name:'Алексей К.',text:'Дмитрий, когда будет готов прод-сервер для v2.1.0?',time:'10:30'},
+    {own:false,name:'Дмитрий Н.',text:'Сегодня к вечеру. Жду окна с 18:00.',time:'10:35'},
+    {own:true,name:'Вы',text:'Отлично! Тогда деплой планируем на завтра утром.',time:'10:42'},
+    {own:false,name:'Алексей К.',text:'Всем привет! Напоминаю — сегодня в 15:00 стендап.',time:'10:42'},
+  ];
+
+  const chatEl = document.getElementById('chatMessages');
+  messages.forEach(m => {
+    chatEl.innerHTML += `
+      <div class="msg-bubble ${m.own?'own':'other'}">
+        ${!m.own?`<div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:4px;">${m.name}</div>`:''}
+        <div class="bubble-text">${m.text}</div>
+        <div class="bubble-meta">${m.time}</div>
+      </div>`;
+  });
+  chatEl.scrollTop = chatEl.scrollHeight;
+
+  function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    if (!text) return;
+    const now = new Date();
+    const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+    chatEl.innerHTML += `<div class="msg-bubble own"><div class="bubble-text">${text}</div><div class="bubble-meta">${time}</div></div>`;
+    input.value = '';
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  function sendOnEnter(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  function openChat(id) {
+    document.querySelectorAll('.contact-item').forEach(c=>c.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+</script>
+</body>
+</html>

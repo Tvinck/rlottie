@@ -3,13 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StaffBase — Войти</title>
+  <title>BAZZAR — Войти</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
     .login-page { position: relative; overflow: hidden; }
-    .glow {
-      position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0;
-    }
+    .glow { position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
     .glow-1 { width: 500px; height: 500px; background: rgba(170,255,71,.06); top: -100px; left: -100px; }
     .glow-2 { width: 300px; height: 300px; background: rgba(170,255,71,.04); bottom: 100px; left: 300px; }
     .login-left, .login-right { position: relative; z-index: 1; }
@@ -20,6 +18,15 @@
     .check-icon { width: 16px; height: 16px; border-radius: 50%; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .check-icon svg { color: var(--accent); }
     .features { display: flex; flex-direction: column; gap: 12px; margin-top: 40px; }
+    .restricted-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(170,255,71,.1); border: 1px solid rgba(170,255,71,.2);
+      color: var(--accent); font-size: 11px; font-weight: 600;
+      padding: 5px 12px; border-radius: 20px; letter-spacing: .05em;
+      text-transform: uppercase; margin-bottom: 28px;
+    }
+    .restricted-tag .dot-live { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
   </style>
 </head>
 <body>
@@ -27,21 +34,21 @@
     <div class="glow glow-1"></div>
     <div class="glow glow-2"></div>
 
-    <!-- LEFT: Hero -->
+    <!-- LEFT -->
     <div class="login-left">
       <div class="login-hero">
         <div class="login-brand">
           <div class="dot"></div>
-          StaffBase
+          BAZZAR
         </div>
-        <h1>Управляй<br>командой <span>умнее</span></h1>
-        <p>Единая платформа для HR, расчётов, задач и аналитики. Полный контроль над вашей командой в одном месте.</p>
 
-        <div class="stats-row">
-          <div class="stat-item"><div class="val">2 400+</div><div class="lbl">Активных команд</div></div>
-          <div class="stat-item"><div class="val">98%</div><div class="lbl">Uptime SLA</div></div>
-          <div class="stat-item"><div class="val">4.9★</div><div class="lbl">Оценка клиентов</div></div>
+        <div class="restricted-tag">
+          <div class="dot-live"></div>
+          Только для сотрудников
         </div>
+
+        <h1>Внутренний<br>портал <span>BAZZAR</span></h1>
+        <p>Закрытая рабочая зона для сотрудников и администраторов. Управление командой, задачами и финансами проекта.</p>
 
         <div class="features">
           <div class="check-row">
@@ -50,7 +57,7 @@
                 <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            Расчёт зарплат и бонусов автоматически
+            Управление сотрудниками и ролями
           </div>
           <div class="check-row">
             <div class="check-icon">
@@ -58,7 +65,7 @@
                 <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            Треккинг задач и KPI по сотрудникам
+            Задачи, дедлайны и KPI команды
           </div>
           <div class="check-row">
             <div class="check-icon">
@@ -66,7 +73,15 @@
                 <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            Аналитика и отчёты в реальном времени
+            Зарплаты, счета и финансовая аналитика
+          </div>
+          <div class="check-row">
+            <div class="check-icon">
+              <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
+                <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            Внутренние сообщения и уведомления
           </div>
         </div>
       </div>
@@ -76,10 +91,10 @@
     <div class="login-right">
       <div class="login-brand" style="margin-bottom: 32px;">
         <div class="dot"></div>
-        StaffBase
+        BAZZAR
       </div>
-      <div class="login-title">Добро пожаловать</div>
-      <div class="login-sub">Введите данные для входа в систему</div>
+      <div class="login-title">Вход в систему</div>
+      <div class="login-sub" style="margin-bottom:28px;">Доступ только для авторизованных сотрудников</div>
 
       <form class="login-form" onsubmit="handleLogin(event)">
         <div class="input-group">
@@ -88,7 +103,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/>
             </svg>
-            <input type="email" placeholder="you@company.com" id="email" required />
+            <input type="email" placeholder="your@bazzar.team" id="email" required />
           </div>
         </div>
         <div class="input-group">
@@ -110,23 +125,23 @@
         </div>
 
         <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;">
-          Войти в систему
+          Войти
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
         </button>
       </form>
 
-      <div class="divider" style="margin-top:24px;"><span>или войдите как</span></div>
+      <div class="divider" style="margin-top:24px;"><span>быстрый вход</span></div>
       <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:12px;" onclick="demoLogin()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
         </svg>
-        Демо-доступ (без регистрации)
+        Войти как администратор (демо)
       </button>
 
-      <div class="login-footer" style="margin-top:28px;">
-        Нет аккаунта? <a href="#">Запросить доступ</a>
+      <div style="margin-top:28px;padding:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-muted);text-align:center;">
+        Нет доступа? Обратитесь к администратору проекта
       </div>
     </div>
   </div>
@@ -135,7 +150,7 @@
     function handleLogin(e) {
       e.preventDefault();
       const btn = e.target.querySelector('button[type="submit"]');
-      btn.textContent = 'Проверяем...';
+      btn.innerHTML = 'Проверяем...';
       btn.disabled = true;
       setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
     }

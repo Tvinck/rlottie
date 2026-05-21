@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BAZZAR — Счета</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .inv-layout { display: grid; grid-template-columns: 1fr 360px; gap: 16px; }
+    .inv-row { cursor: pointer; transition: background .15s; }
+    .inv-row:hover td { background: rgba(255,255,255,.02); }
+    .inv-row.selected td { background: rgba(170,255,71,.04); }
+    .inv-table td, .inv-table th { padding: 12px 10px; }
+    .inv-table th { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); font-weight: 500; }
+    .inv-table td { font-size: 13px; border-bottom: 1px solid rgba(255,255,255,.03); }
+    .kpi-strip-sm { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 18px; }
+    .kpi-sm { text-align: center; }
+    .kpi-sm .v { font-size: 20px; font-weight: 800; }
+    .kpi-sm .l { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Счета</div>
+      <div class="topbar-tabs">
+        <button class="tab active">Все</button>
+        <button class="tab">Черновик</button>
+        <button class="tab">Неоплачено</button>
+        <button class="tab">Оплачено</button>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="alert('Новый счёт')">+ Создать счёт</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="kpi-strip-sm">
+        <div class="card kpi-sm"><div class="v" style="color:var(--red)">₽ 31 211</div><div class="l">Просрочено</div></div>
+        <div class="card kpi-sm"><div class="v">₽ 172 560</div><div class="l">Этот месяц</div></div>
+        <div class="card kpi-sm"><div class="v" style="color:var(--yellow)">5</div><div class="l">Неоплачено</div></div>
+        <div class="card kpi-sm"><div class="v" style="color:var(--accent)">₽ 214 390</div><div class="l">К выводу</div></div>
+      </div>
+
+      <div class="inv-layout">
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div style="padding:16px 16px 0;">
+            <div class="table-header">
+              <div class="table-title">Список счетов</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <div class="icon-btn" style="width:28px;height:28px;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <table class="table inv-table" style="width:100%;">
+            <thead><tr><th>Клиент</th><th>ID</th><th>Статус</th><th>Дата</th><th style="text-align:right">Сумма</th></tr></thead>
+            <tbody id="invoicesBody"></tbody>
+          </table>
+        </div>
+
+        <div id="detailPanel"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+<script>
+  initNav('invoices');
+
+  const invoices = [
+    {id:'427-012',client:'BlueRock',status:'unsent',date:'21 мая 2025',sum:53154,services:[{name:'Разработка',val:10630},{name:'CRM',val:31892},{name:'Интеграция',val:10632}]},
+    {id:'404-002',client:'ТехСтарт',status:'unsent',date:'23 мая 2025',sum:80770,services:[{name:'Backend',val:50000},{name:'Консультация',val:30770}]},
+    {id:'426-001',client:'МедиаГрупп',status:'viewed',date:'20 мая 2025',sum:27114,services:[{name:'Дизайн',val:27114}]},
+    {id:'424-112',client:'АгроПлюс',status:'viewed',date:'8 мая 2025',sum:61223,services:[{name:'Разработка',val:40000},{name:'Тесты',val:21223}]},
+    {id:'417-020',client:'НоваТех',status:'viewed',date:'5 мая 2025',sum:7311,services:[{name:'Поддержка',val:7311}]},
+    {id:'398-005',client:'ГорСтрой',status:'paid',date:'28 апр 2025',sum:125000,services:[{name:'Платформа',val:100000},{name:'Обучение',val:25000}]},
+    {id:'391-018',client:'МедикаПлюс',status:'paid',date:'22 апр 2025',sum:44800,services:[{name:'Мобайл',val:44800}]},
+    {id:'385-003',client:'РитейлПро',status:'paid',date:'14 апр 2025',sum:98500,services:[{name:'ERP',val:98500}]},
+  ];
+
+  const statusMap = {unsent:{label:'Не отправлен',cls:'badge-yellow'},viewed:{label:'Просмотрен',cls:'badge-muted'},paid:{label:'Оплачен',cls:'badge-green'}};
+  let selectedId = invoices[0].id;
+
+  function renderTable() {
+    const tbody = document.getElementById('invoicesBody');
+    tbody.innerHTML = invoices.map(inv => `
+      <tr class="inv-row ${inv.id===selectedId?'selected':''}" onclick="selectInvoice('${inv.id}')">
+        <td><div class="client-cell"><div class="avatar" style="width:28px;height:28px;font-size:10px;background:var(--accent-dim);color:var(--accent);">${inv.client.slice(0,2).toUpperCase()}</div>${inv.client}</div></td>
+        <td><span class="invoice-id">#${inv.id}</span></td>
+        <td><span class="badge ${statusMap[inv.status].cls}">${statusMap[inv.status].label}</span></td>
+        <td style="color:var(--text-muted);font-size:12px">${inv.date}</td>
+        <td style="text-align:right;font-weight:700">₽ ${inv.sum.toLocaleString('ru')}</td>
+      </tr>`).join('');
+  }
+
+  function renderDetail(id) {
+    const inv = invoices.find(i=>i.id===id);
+    if (!inv) return;
+    const st = statusMap[inv.status];
+    document.getElementById('detailPanel').innerHTML = `
+      <div class="detail-panel" style="position:sticky;top:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Счёт</div><div style="font-size:20px;font-weight:800;"># ${inv.id}</div></div>
+          <span class="badge ${st.cls}">${st.label}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Клиент</div>
+        <div style="font-size:22px;font-weight:800;color:var(--accent);margin-bottom:4px">${inv.client}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">${inv.date}</div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+          ${inv.services.map(s=>`
+            <div style="flex:1;min-width:80px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+              <div style="font-size:14px;font-weight:700">₽${(s.val/1000).toFixed(0)}k</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${s.name}</div>
+            </div>`).join('')}
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:14px;">
+          <div class="detail-row"><span class="detail-label">Подитог</span><span class="detail-value">₽ ${inv.sum.toLocaleString('ru')}</span></div>
+          <div class="detail-row"><span class="detail-label">НДС (0%)</span><span class="detail-value">—</span></div>
+          <div class="detail-row" style="margin-bottom:0"><span class="detail-label">Итого</span><span class="detail-value" style="color:var(--accent);font-size:16px;">₽ ${inv.sum.toLocaleString('ru')}</span></div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:16px;">
+          ${inv.status!=='paid'?`<button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="alert('Выставить счёт')">Выставить</button>`:''}
+          <button class="btn btn-ghost" style="${inv.status!=='paid'?'':'flex:1;justify-content:center;'}" onclick="alert('Скачать PDF')">PDF</button>
+          <button class="btn btn-ghost" onclick="alert('Удалить')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }
+
+  function selectInvoice(id) {
+    selectedId = id;
+    renderTable();
+    renderDetail(id);
+  }
+
+  renderTable();
+  renderDetail(selectedId);
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); });
+  });
+</script>
+</body>
+</html>

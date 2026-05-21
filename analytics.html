@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BAZZAR — Аналитика</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .analytics-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 16px; }
+    .big-chart { height: 160px; display: flex; align-items: flex-end; gap: 6px; margin-top: 16px; }
+    .donut-wrap { display: flex; justify-content: center; align-items: center; padding: 16px 0; }
+    .donut { width: 120px; height: 120px; border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; }
+    .donut-center { position: absolute; text-align: center; }
+    .donut-val { font-size: 20px; font-weight: 800; }
+    .donut-lbl { font-size: 10px; color: var(--text-muted); }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 8px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .metric-row:last-child { border-bottom: none; }
+    .trend-up   { color: var(--accent); font-size: 12px; font-weight: 600; }
+    .trend-down { color: var(--red);    font-size: 12px; font-weight: 600; }
+    .sparkline { display: flex; align-items: flex-end; gap: 2px; height: 28px; }
+    .spark-bar { width: 4px; border-radius: 2px 2px 0 0; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Аналитика</div>
+      <div class="topbar-tabs">
+        <button class="tab active">Месяц</button>
+        <button class="tab">Квартал</button>
+        <button class="tab">Год</button>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost btn-sm" onclick="alert('Экспорт отчёта')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Экспорт
+        </button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- KPI Row -->
+      <div class="kpi-strip" style="margin-bottom:16px;">
+        <div class="card kpi-card">
+          <div class="kpi-label">Выручка</div>
+          <div class="kpi-value">₽ 486 350</div>
+          <div class="kpi-delta"><span class="up">↑ 23%</span> vs прошлый месяц</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:72%"></div></div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Расходы (ФОТ)</div>
+          <div class="kpi-value">₽ 386 400</div>
+          <div class="kpi-delta"><span class="down">↑ 4%</span> рост команды</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:58%;background:var(--yellow)"></div></div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Прибыль</div>
+          <div class="kpi-value accent">₽ 99 950</div>
+          <div class="kpi-delta"><span class="up">↑ 41%</span> рост</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:30%"></div></div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Задач закрыто</div>
+          <div class="kpi-value">147</div>
+          <div class="kpi-delta"><span class="up">↑ 18%</span> продуктивность</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:82%"></div></div>
+        </div>
+      </div>
+
+      <!-- Main chart + Donut -->
+      <div class="analytics-grid">
+        <div class="card">
+          <div class="table-header">
+            <div class="table-title">Выручка и расходы</div>
+            <div style="display:flex;gap:12px;align-items:center;font-size:11px;">
+              <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:3px;background:var(--accent);border-radius:2px;display:inline-block;"></span>Выручка</span>
+              <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:3px;background:var(--yellow);border-radius:2px;display:inline-block;"></span>Расходы</span>
+            </div>
+          </div>
+          <div class="big-chart" id="bigChart"></div>
+          <div style="display:flex;justify-content:center;gap:8px;margin-top:8px;" id="chartLabels"></div>
+        </div>
+
+        <div class="card">
+          <div class="table-title" style="margin-bottom:4px;">Структура расходов</div>
+          <div class="donut-wrap">
+            <div style="position:relative;width:120px;height:120px;">
+              <svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--bg-card2)" stroke-width="18"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--accent)" stroke-width="18" stroke-dasharray="168 121" stroke-linecap="round"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--yellow)" stroke-width="18" stroke-dasharray="72 217" stroke-dashoffset="-168" stroke-linecap="round"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="#47C8FF" stroke-width="18" stroke-dasharray="42 247" stroke-dashoffset="-240" stroke-linecap="round"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="#C847FF" stroke-width="18" stroke-dasharray="7 282" stroke-dashoffset="-282" stroke-linecap="round"/>
+              </svg>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                <div style="font-size:16px;font-weight:800;">₽386k</div>
+                <div style="font-size:9px;color:var(--text-muted);">всего</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:0 4px;">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div><span style="flex:1">Разработка</span><span style="font-weight:700">58%</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div><span style="flex:1">Дизайн</span><span style="font-weight:700">25%</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#47C8FF"></div><span style="flex:1">Операции</span><span style="font-weight:700">14%</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:#C847FF"></div><span style="flex:1">Прочее</span><span style="font-weight:700">3%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics + Team perf -->
+      <div class="analytics-grid-3">
+        <div class="card" style="grid-column:span 2;">
+          <div class="table-title" style="margin-bottom:14px;">Производительность команды</div>
+          <div id="teamPerf"></div>
+        </div>
+        <div class="card">
+          <div class="table-title" style="margin-bottom:14px;">Ключевые метрики</div>
+          <div class="metric-row"><span style="font-size:12px;color:var(--text-muted)">Конверсия задач</span><span class="trend-up">↑ 87%</span></div>
+          <div class="metric-row"><span style="font-size:12px;color:var(--text-muted)">Avg время задачи</span><span style="font-size:13px;font-weight:600;">3.2 дня</span></div>
+          <div class="metric-row"><span style="font-size:12px;color:var(--text-muted)">Overdue задачи</span><span class="trend-down">↑ 4</span></div>
+          <div class="metric-row"><span style="font-size:12px;color:var(--text-muted)">Среднее KPI</span><span class="trend-up">82%</span></div>
+          <div class="metric-row"><span style="font-size:12px;color:var(--text-muted)">Онлайн сейчас</span><span style="font-size:13px;font-weight:600;">12 чел.</span></div>
+          <div class="metric-row"><span style="font-size:12px;color:var(--text-muted)">Открытых счетов</span><span class="trend-down">5</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="nav.js"></script>
+<script>
+  initNav('analytics');
+
+  const months  = ['Янв','Фев','Мар','Апр','Май','Июн'];
+  const revenue = [320,380,290,440,420,486];
+  const expense = [280,310,270,360,370,386];
+  const maxV    = Math.max(...revenue, ...expense);
+
+  const chart  = document.getElementById('bigChart');
+  const labels = document.getElementById('chartLabels');
+  months.forEach((m,i) => {
+    const rp = (revenue[i]/maxV*100).toFixed(1);
+    const ep = (expense[i]/maxV*100).toFixed(1);
+    chart.innerHTML += `
+      <div style="flex:1;display:flex;align-items:flex-end;gap:3px;height:100%;">
+        <div style="flex:1;display:flex;align-items:flex-end;height:100%;"><div style="width:100%;height:${rp}%;background:var(--accent);border-radius:4px 4px 0 0;opacity:${i===5?1:.7};"></div></div>
+        <div style="flex:1;display:flex;align-items:flex-end;height:100%;"><div style="width:100%;height:${ep}%;background:var(--yellow);border-radius:4px 4px 0 0;opacity:${i===5?1:.5};"></div></div>
+      </div>`;
+    labels.innerHTML += `<div style="flex:1;text-align:center;font-size:10px;color:var(--text-muted);">${m}</div>`;
+  });
+
+  const team = [
+    {name:'Елена Жукова',role:'QA',kpi:95,tasks:47,spark:[7,8,9,8,10,9,10]},
+    {name:'Мария Смирнова',role:'Frontend',kpi:92,tasks:42,spark:[6,8,8,9,9,8,9]},
+    {name:'Алексей Ким',role:'PM',kpi:88,tasks:61,spark:[7,7,8,8,9,8,9]},
+    {name:'Анна Козлова',role:'Design',kpi:85,tasks:31,spark:[6,7,7,8,8,7,8]},
+    {name:'Сергей Волков',role:'Mobile',kpi:81,tasks:38,spark:[5,6,7,7,8,7,8]},
+    {name:'Иван Петров',role:'Backend',kpi:78,tasks:35,spark:[5,6,6,7,7,6,7]},
+  ];
+
+  const tp = document.getElementById('teamPerf');
+  team.forEach(t => {
+    const ini = t.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+    const kpiColor = t.kpi>=85?'var(--accent)':t.kpi>=70?'var(--yellow)':'var(--red)';
+    const maxS = Math.max(...t.spark);
+    tp.innerHTML += `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+        <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">${ini}</div>
+        <div style="width:130px;"><div style="font-size:13px;font-weight:500;">${t.name}</div><div style="font-size:11px;color:var(--text-muted)">${t.role}</div></div>
+        <div style="flex:1;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:11px;color:var(--text-muted)">KPI</span><span style="font-size:11px;font-weight:700;color:${kpiColor}">${t.kpi}%</span></div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${t.kpi}%;background:${kpiColor}"></div></div></div>
+        <div style="text-align:center;width:50px;"><div style="font-size:16px;font-weight:700">${t.tasks}</div><div style="font-size:10px;color:var(--text-muted)">задач</div></div>
+        <div class="sparkline">${t.spark.map(v=>`<div class="spark-bar" style="height:${(v/maxS*100).toFixed(0)}%;background:${kpiColor};opacity:.7;"></div>`).join('')}</div>
+      </div>`;
+  });
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => { document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); });
+  });
+</script>
+</body>
+</html>
