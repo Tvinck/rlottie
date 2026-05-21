@@ -22,6 +22,10 @@ export default defineConfig({
     alias: {
       '@shared': resolve(__dirname, 'shared'),
       '@client': resolve(__dirname, 'src/client'),
+      // Use the single-file CJS build instead of the ESM barrel that re-exports
+      // from thousands of individual .mjs files — avoids missing-file errors on
+      // Windows where not all icon files extract cleanly from npm.
+      'lucide-react': resolve(__dirname, 'node_modules/lucide-react/dist/cjs/lucide-react.js'),
     },
   },
 
