@@ -24,6 +24,7 @@ import taskRoutes     from './routes/tasks.js';
 import employeeRoutes from './routes/employees.js';
 import financeRoutes  from './routes/finance.js';
 import aiRoutes       from './routes/ai.js';
+import messageRoutes  from './routes/messages.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -47,17 +48,15 @@ await app.register(cors, {
 // WebSocket поддержка
 await app.register(websocket);
 
-// Статические файлы: в prod отдаём dist/client, в dev — корневой каталог
-const staticRoot = Config.IS_PROD
-  ? resolve(__dirname, '../../dist/client')
-  : resolve(__dirname, '../../');       // HTML-файлы лежат в корне
-
-await app.register(staticFiles, {
-  root: staticRoot,
-  prefix: '/',
-  // Не перезаписывать /api/* маршруты статикой
-  decorateReply: false,
-});
+// Статические файлы: только в production. В dev фронтенд обслуживает Vite (порт 5173),
+// а Fastify (порт 3000) отдаёт только /api/* и /ws.
+if (Config.IS_PROD) {
+  await app.register(staticFiles, {
+    root: resolve(__dirname, '../../dist/client'),
+    prefix: '/',
+    decorateReply: false,
+  });
+}
 
 // ── API маршруты ─────────────────────────────────────────────────
 await app.register(projectRoutes);
@@ -65,6 +64,7 @@ await app.register(taskRoutes);
 await app.register(employeeRoutes);
 await app.register(financeRoutes);
 await app.register(aiRoutes);
+await app.register(messageRoutes);
 
 // ── Health check ─────────────────────────────────────────────────
 app.get('/api/health', async () => ({
@@ -111,13 +111,15 @@ export function broadcastWs(event: { type: string; payload: unknown }): void {
 }
 
 // ── Обработка 404 для SPA ────────────────────────────────────────
-// Любой неизвестный GET → index.html (если не /api/*)
+// API → 404 JSON. Прочее → index.html (только в prod, в dev этим занимается Vite).
 app.setNotFoundHandler(async (req, reply) => {
-  if (req.url.startsWith('/api/')) {
+  if (req.url.startsWith('/api/') || req.url.startsWith('/ws')) {
     return reply.status(404).send({ ok: false, error: 'Маршрут не найден' });
   }
-  // Для SPA вернуть home.html или index.html
-  return reply.sendFile('home.html');
+  if (Config.IS_PROD) {
+    return reply.sendFile('index.html');
+  }
+  return reply.status(404).send({ ok: false, error: 'Запустите Vite dev server: npm run dev:client' });
 });
 
 // ── Глобальная обработка ошибок ──────────────────────────────────

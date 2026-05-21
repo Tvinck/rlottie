@@ -19,6 +19,14 @@ const SCHEMA_PATH = resolve(__dirname, '../db/schema.sql');
 export type RunResult = StatementResultingChanges;
 
 let _db: DatabaseSync | null = null;
+let _closed = false;
+
+function closeDb(): void {
+  if (_db && !_closed) {
+    _closed = true;
+    try { _db.close(); } catch { /* already closed */ }
+  }
+}
 
 export function getDb(): DatabaseSync {
   if (!_db) {
@@ -27,9 +35,9 @@ export function getDb(): DatabaseSync {
     const schema = readFileSync(SCHEMA_PATH, 'utf-8');
     _db.exec(schema);
 
-    process.on('exit',   () => _db?.close());
-    process.on('SIGINT',  () => { _db?.close(); process.exit(0); });
-    process.on('SIGTERM', () => { _db?.close(); process.exit(0); });
+    process.on('exit',    closeDb);
+    process.on('SIGINT',  () => { closeDb(); process.exit(0); });
+    process.on('SIGTERM', () => { closeDb(); process.exit(0); });
   }
   return _db;
 }
