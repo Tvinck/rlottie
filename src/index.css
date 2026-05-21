@@ -255,7 +255,24 @@ input, textarea, select {
 .tag-ops     { background: rgba(255,209,102,.12); color: var(--yellow); }
 .tag-bug     { background: rgba(255,90,90,.12);   color: var(--red); }
 
-/* ── Brand logo ────────────────────────────────────────────────── */
+/* ── Brand logo (image variant) ────────────────────────────────── */
+.brand-logo-img {
+  display: block;
+  object-fit: cover;
+  flex-shrink: 0;
+  user-select: none;
+  /* На тёмной UI чёрный фон фото "пропадает" — остаётся только наклейка */
+  mix-blend-mode: screen;
+  /* Лёгкое усиление контраста и насыщенности для holographic-эффекта */
+  filter: contrast(1.05) saturate(1.1) drop-shadow(0 8px 20px rgba(139, 92, 246, 0.25));
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+.brand-logo-img:hover {
+  transform: scale(1.05) rotate(-2deg);
+  filter: contrast(1.1) saturate(1.2) drop-shadow(0 10px 28px rgba(139, 92, 246, 0.4));
+}
+
+/* ── Brand logo (CSS fallback) ─────────────────────────────────── */
 .brand-logo {
   position: relative;
   display: inline-flex;
