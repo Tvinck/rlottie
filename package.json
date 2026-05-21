@@ -8,13 +8,13 @@
   },
   "scripts": {
     "dev": "concurrently -n server,client -c cyan,green \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "tsx watch --clear-screen=false src/server/index.ts",
-    "dev:client": "vite --port 5173",
-    "build": "vite build && tsc -p tsconfig.server.json",
+    "dev:server": "npx tsx watch --clear-screen=false src/server/index.ts",
+    "dev:client": "npx vite --port 5173",
+    "build": "npx vite build && npx tsc -p tsconfig.server.json",
     "start": "node dist/server/index.js",
-    "db:init": "tsx src/server/db/migrate.ts",
-    "db:seed": "tsx src/server/db/seed.ts",
-    "type-check": "tsc --noEmit"
+    "db:init": "npx tsx src/server/db/migrate.ts",
+    "db:seed": "npx tsx src/server/db/seed.ts",
+    "type-check": "npx tsc --noEmit"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
