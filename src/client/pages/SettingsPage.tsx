@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
+import { StatusPill, type PillStatus, type PillVariant } from '../components/ui/Badge';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -77,6 +78,21 @@ export default function SettingsPage() {
           <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
             <span style={{ color: 'var(--text-muted)' }}>{label}</span>
             <span>{value}</span>
+          </div>
+        ))}
+      </section>
+
+      {/* Status pills showcase */}
+      <section className="card" style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Статусные плашки</div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 16 }}>
+          5 статусов × 3 варианта стиля
+        </div>
+        {(['verified', 'blocked', 'inactive', 'active', 'unverified'] as PillStatus[]).map((status) => (
+          <div key={status} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+            {(['soft', 'outline', 'solid'] as PillVariant[]).map((variant) => (
+              <StatusPill key={variant} status={status} variant={variant} />
+            ))}
           </div>
         ))}
       </section>

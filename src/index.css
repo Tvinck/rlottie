@@ -255,6 +255,60 @@ input, textarea, select {
 .tag-ops     { background: rgba(255,209,102,.12); color: var(--yellow); }
 .tag-bug     { background: rgba(255,90,90,.12);   color: var(--red); }
 
+/* ── Status pills ──────────────────────────────────────────────── */
+/* 5 статусов × 3 стиля: soft (мягкий), outline (контур), solid (заливка) */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+.pill svg { flex-shrink: 0; }
+
+/* Базовые цвета каждого статуса (с алфой для soft и outline) */
+.pill-verified   { --pill-color: #6366f1; --pill-bg: rgba(99,102,241,.14);  --pill-border: rgba(99,102,241,.4); }
+.pill-blocked    { --pill-color: #ef4444; --pill-bg: rgba(239,68,68,.14);   --pill-border: rgba(239,68,68,.4); }
+.pill-inactive   { --pill-color: #737373; --pill-bg: rgba(115,115,115,.18); --pill-border: rgba(115,115,115,.45); }
+.pill-active     { --pill-color: #10b981; --pill-bg: rgba(16,185,129,.14);  --pill-border: rgba(16,185,129,.4); }
+.pill-unverified { --pill-color: #f97316; --pill-bg: rgba(249,115,22,.14);  --pill-border: rgba(249,115,22,.4); }
+
+/* Soft — полупрозрачный фон, цвет текста и иконки */
+.pill-soft {
+  background: var(--pill-bg);
+  color: var(--pill-color);
+}
+
+/* Outline — прозрачный фон, цветной контур */
+.pill-outline {
+  background: transparent;
+  color: var(--pill-color);
+  border-color: var(--pill-border);
+}
+
+/* Solid — заливка цветом, белый текст */
+.pill-solid {
+  background: var(--pill-color);
+  color: #fff;
+}
+.pill-solid.pill-inactive { background: #525252; }
+
+/* Hover-эффект для интерактивных pill */
+.pill-clickable { cursor: pointer; }
+.pill-clickable:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+/* Анимация для unverified (вращение иконки) */
+.pill-unverified svg.pill-spin {
+  animation: spin 2.5s linear infinite;
+}
+
 /* ── Inputs ────────────────────────────────────────────────────── */
 .input-group {
   display: flex;
