@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 import { Spinner } from '../components/ui/Spinner';
+import { BrandLogo } from '../components/ui/BrandLogo';
 import { login, isAuthenticated } from '../auth/auth';
 
 export default function LoginPage() {
@@ -61,19 +62,10 @@ export default function LoginPage() {
       <div style={{ width: '100%', maxWidth: 420 }}>
         {/* Brand */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div
-            style={{
-              width: 56, height: 56, borderRadius: 14,
-              background: 'linear-gradient(135deg, var(--accent), #8b5cf6)',
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 16px',
-              fontSize: 24, fontWeight: 800, color: '#fff',
-              boxShadow: '0 8px 24px rgba(170,255,71,.25)',
-            }}
-          >
-            B
+          <div style={{ marginBottom: 16 }}>
+            <BrandLogo size={64} />
           </div>
-          <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>BAZZAR</div>
+          <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.03em' }}>BAZZAR</div>
           <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
             Платформа управления бизнесом
           </div>

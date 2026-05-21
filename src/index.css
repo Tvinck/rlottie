@@ -255,6 +255,68 @@ input, textarea, select {
 .tag-ops     { background: rgba(255,209,102,.12); color: var(--yellow); }
 .tag-bug     { background: rgba(255,90,90,.12);   color: var(--red); }
 
+/* ── Brand logo ────────────────────────────────────────────────── */
+.brand-logo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow:
+    0 12px 32px rgba(139, 92, 246, 0.28),
+    0 4px 12px rgba(99, 102, 241, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+/* Голографический conic-gradient — вращается, создавая эффект переливания */
+.brand-logo-ring {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    from 0deg,
+    #ff6b9d 0%,
+    #feca57 16%,
+    #1dd1a1 33%,
+    #48dbfb 50%,
+    #a29bfe 66%,
+    #ff6b9d 83%,
+    #ff6b9d 100%
+  );
+  filter: saturate(1.15);
+}
+
+.brand-logo-ring-spin {
+  animation: brand-spin 7s linear infinite;
+}
+
+@keyframes brand-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Внутренняя тёмная подложка с тонким градиентом */
+.brand-logo-inner {
+  position: absolute;
+  inset: 2px;
+  background: radial-gradient(circle at 30% 20%, #1a1a25 0%, #0a0a14 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Буква B — градиент белый → лиловый → индиго, с лёгким свечением */
+.brand-logo-letter {
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  background: linear-gradient(135deg, #ffffff 0%, #d8b4fe 45%, #818cf8 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(168, 132, 252, 0.4));
+  line-height: 1;
+  user-select: none;
+}
+
 /* ── Status pills ──────────────────────────────────────────────── */
 /* 5 статусов × 3 стиля: soft (мягкий), outline (контур), solid (заливка) */
 

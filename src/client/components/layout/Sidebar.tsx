@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import { getAuthUser, logout } from '../../auth/auth';
+import { BrandLogo } from '../ui/BrandLogo';
 
 interface NavItem {
   id:    string;
@@ -60,8 +61,8 @@ export function Sidebar() {
     <aside className="sidebar">
       {/* Бренд */}
       <div className="sidebar-brand">
-        <div className="dot" />
-        BAZZAR
+        <BrandLogo size={26} />
+        <span>BAZZAR</span>
       </div>
 
       {/* Навигация */}
