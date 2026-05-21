@@ -4,16 +4,16 @@
   "description": "BAZZAR — Платформа управления проектами и бизнесом с ИИ инструментами",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.5"
   },
   "scripts": {
     "dev": "concurrently -n server,client -c cyan,green \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "npx tsx watch --clear-screen=false src/server/index.ts",
+    "dev:server": "node --experimental-sqlite --watch --import tsx/esm src/server/index.ts",
     "dev:client": "npx vite --port 5173",
     "build": "npx vite build && npx tsc -p tsconfig.server.json",
     "start": "node dist/server/index.js",
-    "db:init": "npx tsx src/server/db/migrate.ts",
-    "db:seed": "npx tsx src/server/db/seed.ts",
+    "db:init": "node --experimental-sqlite --import tsx/esm src/server/db/migrate.ts",
+    "db:seed": "node --experimental-sqlite --import tsx/esm src/server/db/seed.ts",
     "type-check": "npx tsc --noEmit"
   },
   "dependencies": {
@@ -21,7 +21,6 @@
     "@fastify/static": "^7.0.4",
     "@fastify/websocket": "^8.3.1",
     "@tanstack/react-query": "^5.100.11",
-    "better-sqlite3": "^11.7.0",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
     "fastify": "^4.29.0",
@@ -33,7 +32,6 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.8",
     "@types/node": "^22.10.1",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",

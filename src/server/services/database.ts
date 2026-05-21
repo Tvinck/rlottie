@@ -1,13 +1,12 @@
 /**
  * @file src/server/services/database.ts
- * Сервис работы с базой данных SQLite через better-sqlite3.
+ * Сервис работы с базой данных SQLite через встроенный node:sqlite.
  *
- * better-sqlite3 — синхронный драйвер. Это намеренно: синхронные операции
- * не блокируют event loop Node.js при использовании WAL-режима SQLite,
- * зато API становится проще и типобезопаснее.
+ * node:sqlite (Node.js 22+) — синхронный драйвер без нативной компиляции.
+ * Не требует build tools, работает на любой платформе "из коробки".
  */
 
-import Database from 'better-sqlite3';
+import { DatabaseSync, type StatementResultingChanges } from 'node:sqlite';
 import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -15,89 +14,72 @@ import { Config } from '../config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-/** Путь к SQL-схеме */
 const SCHEMA_PATH = resolve(__dirname, '../db/schema.sql');
 
-/**
- * Singleton инстанс SQLite. Открывается один раз при старте сервера.
- * В тестах можно переопределить через DatabaseService.resetInstance().
- */
-let _db: Database.Database | null = null;
+export type RunResult = StatementResultingChanges;
 
-export function getDb(): Database.Database {
+let _db: DatabaseSync | null = null;
+
+export function getDb(): DatabaseSync {
   if (!_db) {
-    _db = new Database(Config.DB_PATH, {
-      verbose: Config.IS_DEV ? console.log : undefined,
-    });
+    _db = new DatabaseSync(Config.DB_PATH);
 
-    // Применить схему (CREATE TABLE IF NOT EXISTS — идемпотентно)
     const schema = readFileSync(SCHEMA_PATH, 'utf-8');
     _db.exec(schema);
 
-    // Корректное завершение при сигналах ОС
-    process.on('exit', () => _db?.close());
+    process.on('exit',   () => _db?.close());
     process.on('SIGINT',  () => { _db?.close(); process.exit(0); });
     process.on('SIGTERM', () => { _db?.close(); process.exit(0); });
   }
   return _db;
 }
 
-/**
- * Типобезопасный хелпер: выполняет SELECT и возвращает массив T.
- * @example
- * const rows = queryAll<Project>(db, 'SELECT * FROM projects WHERE status=?', ['active']);
- */
 export function queryAll<T>(
-  db: Database.Database,
+  db: DatabaseSync,
   sql: string,
   params: readonly unknown[] = [],
 ): T[] {
-  return db.prepare(sql).all(...params) as T[];
+  // Cast needed: node:sqlite types params as SQLInputValue[], our helpers accept unknown[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return db.prepare(sql).all(...(params as any[])) as T[];
 }
 
-/**
- * Типобезопасный хелпер: SELECT одной строки или undefined.
- */
 export function queryOne<T>(
-  db: Database.Database,
+  db: DatabaseSync,
   sql: string,
   params: readonly unknown[] = [],
 ): T | undefined {
-  return db.prepare(sql).get(...params) as T | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return db.prepare(sql).get(...(params as any[])) as T | undefined;
 }
 
-/**
- * Выполняет INSERT/UPDATE/DELETE и возвращает количество затронутых строк.
- */
 export function execute(
-  db: Database.Database,
+  db: DatabaseSync,
   sql: string,
   params: readonly unknown[] = [],
-): Database.RunResult {
-  return db.prepare(sql).run(...params);
+): RunResult {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return db.prepare(sql).run(...(params as any[]));
 }
 
 /**
  * Выполняет несколько операций в одной транзакции.
- * При любой ошибке внутри fn транзакция откатывается.
- * @example
- * withTransaction(db, () => {
- *   execute(db, 'INSERT INTO tasks ...', [...]);
- *   execute(db, 'UPDATE projects SET updated_at=? WHERE id=?', [...]);
- * });
+ * node:sqlite не имеет transaction() — используем ручной BEGIN/COMMIT/ROLLBACK.
  */
-export function withTransaction<T>(db: Database.Database, fn: () => T): T {
-  return db.transaction(fn)();
+export function withTransaction<T>(db: DatabaseSync, fn: () => T): T {
+  db.exec('BEGIN');
+  try {
+    const result = fn();
+    db.exec('COMMIT');
+    return result;
+  } catch (err) {
+    try { db.exec('ROLLBACK'); } catch { /* ignore */ }
+    throw err;
+  }
 }
 
-/**
- * Генерирует UUID v4-подобный ID.
- * SQLite генерирует его сам (DEFAULT lower(hex(randomblob(16)))),
- * но иногда нужен ID заранее (для связей до INSERT).
- */
 export function newId(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
-  // Формат: 8-4-4-4-12 hex
   const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
   return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
 }
