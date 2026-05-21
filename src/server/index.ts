@@ -1,0 +1,146 @@
+/**
+ * @file src/server/index.ts
+ * Точка входа Fastify-сервера BAZZAR.
+ *
+ * Запуск в dev-режиме:  npm run dev:server
+ * Запуск в prod:        npm start  (после npm run build)
+ *
+ * Архитектура:
+ *   ├── /api/*       — REST API маршруты
+ *   ├── /ws          — WebSocket (real-time чат / AI-события)
+ *   └── /*           — Статические файлы (HTML/CSS/JS фронтенда)
+ */
+
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import staticFiles from '@fastify/static';
+import websocket, { type SocketStream } from '@fastify/websocket';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+import { Config } from './config.js';
+import projectRoutes  from './routes/projects.js';
+import taskRoutes     from './routes/tasks.js';
+import employeeRoutes from './routes/employees.js';
+import financeRoutes  from './routes/finance.js';
+import aiRoutes       from './routes/ai.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// ── Создаём Fastify инстанс ──────────────────────────────────────
+// Pino logger: в dev красивый вывод, в prod JSON
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const loggerConfig: any = Config.IS_DEV
+  ? { level: 'debug', transport: { target: 'pino-pretty', options: { colorize: true, translateTime: 'HH:MM:ss' } } }
+  : { level: 'info' };
+
+const app = Fastify({ logger: loggerConfig });
+
+// ── Плагины ─────────────────────────────────────────────────────
+
+// CORS — разрешаем запросы от Vite dev-сервера и самого сайта
+await app.register(cors, {
+  origin: Config.CORS_ORIGINS,
+  credentials: true,
+});
+
+// WebSocket поддержка
+await app.register(websocket);
+
+// Статические файлы: в prod отдаём dist/client, в dev — корневой каталог
+const staticRoot = Config.IS_PROD
+  ? resolve(__dirname, '../../dist/client')
+  : resolve(__dirname, '../../');       // HTML-файлы лежат в корне
+
+await app.register(staticFiles, {
+  root: staticRoot,
+  prefix: '/',
+  // Не перезаписывать /api/* маршруты статикой
+  decorateReply: false,
+});
+
+// ── API маршруты ─────────────────────────────────────────────────
+await app.register(projectRoutes);
+await app.register(taskRoutes);
+await app.register(employeeRoutes);
+await app.register(financeRoutes);
+await app.register(aiRoutes);
+
+// ── Health check ─────────────────────────────────────────────────
+app.get('/api/health', async () => ({
+  status: 'ok',
+  version: '1.0.0',
+  env: Config.NODE_ENV,
+  timestamp: new Date().toISOString(),
+}));
+
+// ── WebSocket для real-time событий ─────────────────────────────
+// Клиент подключается к /ws и получает события: новые сообщения, AI-задачи
+
+/** Множество активных WS-соединений (SocketStream.socket — это нативный ws.WebSocket) */
+const wsClients = new Set<SocketStream>();
+
+app.get('/ws', { websocket: true }, (socket: SocketStream) => {
+  wsClients.add(socket);
+  app.log.info(`[WS] Клиент подключился. Всего: ${wsClients.size}`);
+
+  socket.socket.send(JSON.stringify({ type: 'connected', payload: { message: 'BAZZAR WS подключён' } }));
+
+  socket.socket.on('close', () => {
+    wsClients.delete(socket);
+    app.log.info(`[WS] Клиент отключился. Всего: ${wsClients.size}`);
+  });
+
+  socket.socket.on('error', (err: Error) => {
+    app.log.error(err, '[WS] Ошибка соединения');
+    wsClients.delete(socket);
+  });
+});
+
+/**
+ * Отправляет событие всем подключённым WebSocket-клиентам.
+ * Используется из AI callback и message routes.
+ */
+export function broadcastWs(event: { type: string; payload: unknown }): void {
+  const data = JSON.stringify(event);
+  for (const client of wsClients) {
+    if (client.socket.readyState === 1 /* OPEN */) {
+      client.socket.send(data);
+    }
+  }
+}
+
+// ── Обработка 404 для SPA ────────────────────────────────────────
+// Любой неизвестный GET → index.html (если не /api/*)
+app.setNotFoundHandler(async (req, reply) => {
+  if (req.url.startsWith('/api/')) {
+    return reply.status(404).send({ ok: false, error: 'Маршрут не найден' });
+  }
+  // Для SPA вернуть home.html или index.html
+  return reply.sendFile('home.html');
+});
+
+// ── Глобальная обработка ошибок ──────────────────────────────────
+app.setErrorHandler(async (error, req, reply) => {
+  app.log.error(error, `[${req.method}] ${req.url}`);
+
+  if (reply.sent) return;
+
+  const statusCode = error.statusCode ?? 500;
+  return reply.status(statusCode).send({
+    ok: false,
+    error: Config.IS_DEV ? error.message : 'Внутренняя ошибка сервера',
+    ...(Config.IS_DEV && { stack: error.stack }),
+  });
+});
+
+// ── Запуск ───────────────────────────────────────────────────────
+try {
+  await app.listen({ port: Config.PORT, host: Config.HOST });
+  console.log(`\n✅ BAZZAR сервер запущен: http://${Config.HOST}:${Config.PORT}`);
+  console.log(`   Среда: ${Config.NODE_ENV}`);
+  console.log(`   БД:    ${Config.DB_PATH}\n`);
+} catch (err) {
+  app.log.error(err);
+  process.exit(1);
+}

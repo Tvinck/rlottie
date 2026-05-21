@@ -158,7 +158,12 @@
 <script>
 initNav('ai-tools');
 
-const API_KEY = '724e5ef97246f4367d2301f04557c6ef';
+// SECURITY: API ключ убран из браузера.
+// Все AI-запросы проксируются через /api/ai/* (src/server/routes/ai.ts).
+// API_KEY хранится в .env на сервере и никогда не покидает backend.
+//
+// В dev-режиме этот файл работает как есть (inline JS).
+// В production подключается скомпилированный TypeScript: src/client/pages/ai-tools.ts
 
 // ── CATEGORY / TOOL STRUCTURE ──
 const CATS = [
@@ -350,62 +355,108 @@ function handleFile(input) {
   document.getElementById('uploadLabel').innerHTML = `<strong>${file.name}</strong><span style="font-size:11px;color:var(--accent);display:block;margin-top:4px;">Файл загружен ✓</span>`;
 }
 
-function runGenerate(toolId) {
-  const btn = document.getElementById('genBtn');
+async function runGenerate(toolId) {
+  const btn    = document.getElementById('genBtn');
   const output = document.getElementById('toolOutput');
+  const prompt = document.getElementById('toolPrompt')?.value?.trim() || '';
+
+  if (!prompt) {
+    output.classList.add('has-content');
+    output.innerHTML = '<div style="color:var(--red)">⚠️ Введите описание (промпт) для генерации</div>';
+    return;
+  }
+
   btn.disabled = true;
   btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg> Генерация...`;
   output.innerHTML = `<div class="typing-dot"><span></span><span></span><span></span></div>`;
   output.classList.remove('has-content');
 
-  setTimeout(() => {
+  try {
+    // Определяем endpoint по типу инструмента
+    let endpoint = '/api/ai/image';
+    let body = { prompt };
+
+    if (toolId.includes('video') || toolId === 'lip-sync' || toolId === 'speech-to-video') {
+      endpoint = '/api/ai/video';
+    } else if (toolId === 'text-to-music') {
+      endpoint = '/api/ai/music';
+    }
+
+    const res  = await fetch(endpoint, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    });
+    const json = await res.json();
+
+    if (!json.ok) throw new Error(json.error || 'Ошибка запуска задачи');
+
+    const jobId = json.data.id;
+
+    // Polling каждые 3 секунды
+    output.classList.add('has-content');
+    output.innerHTML = `<div style="font-size:12px;color:var(--text-muted);">⏳ Задача в очереди... (ID: ${jobId.slice(0,8)})</div>`;
+
+    const poll = setInterval(async () => {
+      try {
+        const statusRes  = await fetch(`/api/ai/job/${jobId}`);
+        const statusJson = await statusRes.json();
+        const job        = statusJson.data;
+
+        if (job.status === 'success') {
+          clearInterval(poll);
+          btn.disabled = false;
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Сгенерировать`;
+          output.innerHTML = demoOutput(toolId, job.result_url);
+        } else if (job.status === 'failed') {
+          clearInterval(poll);
+          btn.disabled = false;
+          btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Сгенерировать`;
+          output.innerHTML = `<div style="color:var(--red)">⚠️ Ошибка: ${job.error || 'Генерация не удалась'}</div>`;
+        }
+      } catch { /* продолжаем polling */ }
+    }, 3000);
+
+  } catch (err) {
     btn.disabled = false;
     btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Сгенерировать`;
     output.classList.add('has-content');
-    output.innerHTML = demoOutput(toolId);
-  }, 2200);
+    output.innerHTML = `<div style="color:var(--red)">⚠️ ${err.message}</div>`;
+  }
 }
 
-function demoOutput(id) {
-  if (id.includes('text-to-image') || id.includes('image-to-image') || id.includes('image-editing')) {
-    return `<div style="text-align:center;padding:20px;">
-      <div style="width:100%;max-width:400px;height:260px;background:linear-gradient(135deg,rgba(170,255,71,.15),rgba(71,200,255,.1));border-radius:var(--radius);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;border:1px solid var(--border);">
-        <div style="text-align:center;opacity:.5;"><div style="font-size:40px;margin-bottom:8px;">🖼️</div><div style="font-size:12px;color:var(--text-muted);">Изображение сгенерировано</div></div>
-      </div>
-      <div style="display:flex;gap:8px;justify-content:center;">
-        <button class="btn btn-primary btn-sm" onclick="alert('Скачать')">Скачать</button>
-        <button class="btn btn-ghost btn-sm" onclick="alert('Вариации')">Вариации</button>
-      </div>
-    </div>`;
-  }
-  if (id.includes('video') || id.includes('lip-sync')) {
-    return `<div style="text-align:center;padding:20px;">
-      <div style="width:100%;max-width:480px;height:260px;background:var(--bg-card);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;border:1px solid var(--border);">
-        <div style="text-align:center;opacity:.5;"><div style="font-size:40px;margin-bottom:8px;">🎬</div><div style="font-size:12px;color:var(--text-muted);">Видео готово</div></div>
-      </div>
-      <div style="display:flex;gap:8px;justify-content:center;">
-        <button class="btn btn-primary btn-sm" onclick="alert('Скачать MP4')">Скачать MP4</button>
-        <button class="btn btn-ghost btn-sm" onclick="alert('Предпросмотр')">Предпросмотр</button>
-      </div>
-    </div>`;
-  }
-  if (id.includes('speech-to-text')) {
-    return `<div style="padding:4px;"><div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px;">Транскрипция:</div><div style="font-size:13px;line-height:1.7;">"Всем добрый день. Сегодня мы обсудим результаты работы за прошедшую неделю и планы на следующую..."</div><button class="btn btn-ghost btn-sm" style="margin-top:12px;" onclick="navigator.clipboard.writeText('текст')">Скопировать текст</button></div>`;
-  }
-  if (id.includes('music') || id.includes('audio') || id.includes('text-to-speech')) {
-    return `<div style="text-align:center;padding:16px;">
-      <div style="background:var(--bg-card);border-radius:var(--radius);padding:16px;margin-bottom:12px;">
-        <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">АУДИО ГОТОВО</div>
-        <div style="height:40px;background:var(--bg-card2);border-radius:var(--radius-sm);display:flex;align-items:center;padding:0 12px;gap:10px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <div style="flex:1;height:3px;background:var(--border);border-radius:2px;"><div style="width:0%;height:100%;background:var(--accent);border-radius:2px;"></div></div>
-          <div style="font-size:11px;color:var(--text-muted);">0:30</div>
+function demoOutput(id, resultUrl) {
+  if (id.includes('image') || id.includes('image-editing')) {
+    if (resultUrl) {
+      return `<div style="text-align:center;padding:16px;">
+        <img src="${resultUrl}" alt="Результат" style="max-width:100%;border-radius:var(--radius);margin-bottom:12px;"/>
+        <div style="display:flex;gap:8px;justify-content:center;">
+          <a href="${resultUrl}" download class="btn btn-primary btn-sm">Скачать</a>
+          <button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText('${resultUrl}');this.textContent='Скопировано ✓';setTimeout(()=>this.textContent='Копировать URL',1500)">Копировать URL</button>
         </div>
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="alert('Скачать аудио')">Скачать MP3</button>
-    </div>`;
+      </div>`;
+    }
+    return `<div style="text-align:center;padding:20px;opacity:.6;"><div style="font-size:40px;margin-bottom:8px;">🖼️</div><div>Изображение готово</div></div>`;
   }
-  return `<div style="color:var(--text-primary);font-size:13px;">Готово ✓</div>`;
+  if (id.includes('video') || id === 'lip-sync' || id === 'speech-to-video') {
+    if (resultUrl) {
+      return `<div style="text-align:center;padding:16px;">
+        <video src="${resultUrl}" controls style="max-width:100%;border-radius:var(--radius);margin-bottom:12px;"></video>
+        <a href="${resultUrl}" download class="btn btn-primary btn-sm">Скачать MP4</a>
+      </div>`;
+    }
+    return `<div style="text-align:center;padding:20px;opacity:.6;"><div style="font-size:40px;margin-bottom:8px;">🎬</div><div>Видео готово</div></div>`;
+  }
+  if (id.includes('music') || id.includes('audio') || id === 'text-to-speech') {
+    if (resultUrl) {
+      return `<div style="padding:16px;">
+        <audio src="${resultUrl}" controls style="width:100%;margin-bottom:12px;"></audio>
+        <a href="${resultUrl}" download class="btn btn-primary btn-sm">Скачать MP3</a>
+      </div>`;
+    }
+    return `<div style="text-align:center;padding:20px;opacity:.6;"><div style="font-size:40px;margin-bottom:8px;">🎵</div><div>Аудио готово</div></div>`;
+  }
+  return `<div style="color:var(--accent);font-size:13px;">✓ Готово ${resultUrl ? `<a href="${resultUrl}" target="_blank" style="color:var(--accent)">Открыть</a>` : ''}</div>`;
 }
 
 // ── CHAT ──
@@ -523,34 +574,33 @@ async function sendChat() {
       .filter(m => m.role !== 'typing')
       .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }));
 
-    // Try OpenAI-compatible endpoint (many services support this format)
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Запрос идёт через НАШ backend-прокси /api/ai/chat
+    // API ключ хранится на сервере в .env — браузер его не видит
+    const res = await fetch('/api/ai/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
         messages: [
-          {role:'system', content:'Ты — умный ИИ-ассистент для команды проекта BAZZAR. Отвечай на русском языке. Ты помогаешь с задачами проекта, кодом, текстами и идеями. Отвечай чётко и по делу.'},
-          ...messages
+          { role: 'system', content: 'Ты — умный ИИ-ассистент для команды проекта BAZZAR. Отвечай на русском языке. Помогай с задачами проекта, кодом, текстами и идеями. Отвечай чётко и по делу.' },
+          ...messages,
         ],
+        model: 'gpt-4o-mini',
         max_tokens: 1024,
         temperature: 0.7,
-      })
+      }),
     });
 
     const typing2 = document.getElementById('typingIndicator');
     if (typing2) typing2.remove();
 
     if (!res.ok) {
-      const err = await res.json().catch(()=>({error:{message:'Ошибка соединения с API'}}));
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
+      const err = await res.json().catch(() => ({ error: 'Ошибка соединения с API' }));
+      throw new Error(err.error || `HTTP ${res.status}`);
     }
 
-    const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || 'Пустой ответ от API';
+    const json = await res.json();
+    // Наш API возвращает { ok: true, data: { content: "..." } }
+    const reply = json.data?.content || json.choices?.[0]?.message?.content || 'Пустой ответ от API';
     chatHistory.push({role:'ai', content:reply, time:ftime()});
   } catch (err) {
     const typing2 = document.getElementById('typingIndicator');
