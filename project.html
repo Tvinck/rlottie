@@ -190,19 +190,30 @@
   const params = new URLSearchParams(location.search);
   const pid    = params.get('p') || 'bazzar-market';
   const proj   = PROJECTS[pid] || PROJECTS['bazzar-market'];
-  let activeSection = 'chats';
+  let activeSection = 'tasks'; // overwritten below after sections array is built
 
   document.title = `BAZZAR — ${proj.name}`;
 
   // ─── SIDEBAR ────────────────────────────────────────────────
-  const sections = [
-    {id:'chats',   label:'Чаты',          icon:`<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>`},
-    {id:'tasks',   label:'Задания',        icon:`<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`, badge: Object.values(proj.tasks).flat().length},
-    {id:'finance', label:'Финансы',        icon:`<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>`},
-    {id:'team',    label:'Команда',        icon:`<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>`, badge: proj.team.length},
-    {id:'analytics',label:'Аналитика',    icon:`<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>`},
-    {id:'settings',label:'Настройки',     icon:`<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>`},
+  const baseSections = [
+    {id:'tasks',    label:'Задания',   icon:`<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`, badge: Object.values(proj.tasks).flat().length},
+    {id:'finance',  label:'Финансы',   icon:`<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>`},
+    {id:'team',     label:'Команда',   icon:`<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>`, badge: proj.team.length},
+    {id:'analytics',label:'Аналитика', icon:`<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>`},
+    {id:'settings', label:'Настройки', icon:`<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>`},
   ];
+
+  const sections = pid === 'bazzar-market'
+    ? [
+        {id:'products', label:'Товары и продажи', icon:`<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>`},
+        ...baseSections,
+      ]
+    : [
+        {id:'chats', label:'Чаты', icon:`<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>`},
+        ...baseSections,
+      ];
+
+  activeSection = sections[0].id;
 
   document.getElementById('projSidebar').innerHTML = `
     <a href="home.html" class="proj-back">
@@ -414,8 +425,173 @@
     </div>`;
   }
 
-  const builders = {chats:buildChats,tasks:buildTasks,finance:buildFinance,team:buildTeam,analytics:buildAnalytics,settings:buildSettings};
-  const secTitles = {chats:'Чаты',tasks:'Задания',finance:'Финансы',team:'Команда',analytics:'Аналитика',settings:'Настройки проекта'};
+  // ── PRODUCTS & SALES ────────────────────────────────────────
+  let activeProdTab = 'cert';
+
+  function buildProducts() {
+    return `
+      <style>
+        .prod-tabs { display:flex;gap:2px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px;width:fit-content;margin-bottom:20px; }
+        .prod-tab  { padding:7px 18px;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--text-muted);border:none;background:transparent;font-family:inherit; }
+        .prod-tab.active { background:var(--bg-primary);color:var(--text-primary);box-shadow:0 1px 4px rgba(0,0,0,.3); }
+        .cert-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px; }
+        .cert-field { background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px; }
+        .cert-field-label { font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px; }
+        .cert-field-value { font-size:13px;font-weight:500;color:var(--text-primary); }
+        .cert-field-value.mono { font-family:monospace;font-size:11px;word-break:break-all;color:var(--text-sub); }
+        .device-row { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04); }
+        .device-row:last-child { border-bottom:none; }
+        .pwd-wrap { display:flex;align-items:center;gap:8px; }
+        .pwd-masked { font-size:16px;letter-spacing:2px;color:var(--text-sub); }
+        .copy-btn { font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-dim);border:none;border-radius:var(--radius-sm);padding:3px 8px;cursor:pointer;font-family:inherit; }
+        .copy-btn:hover { opacity:.8; }
+      </style>
+
+      <div class="prod-tabs">
+        <button class="prod-tab ${activeProdTab==='cert'?'active':''}" onclick="switchProdTab('cert',this)">
+          🔐 Apple Certificate
+        </button>
+        <button class="prod-tab ${activeProdTab==='account'?'active':''}" onclick="switchProdTab('account',this)">
+          🍎 Apple Shared Account
+        </button>
+      </div>
+
+      <div id="prod-content"></div>`;
+  }
+
+  function switchProdTab(tab, btn) {
+    activeProdTab = tab;
+    document.querySelectorAll('.prod-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    renderProdContent();
+  }
+
+  function renderProdContent() {
+    const el = document.getElementById('prod-content');
+    if (!el) return;
+    if (activeProdTab === 'cert') {
+      el.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <div>
+            <div style="font-size:16px;font-weight:700;margin-bottom:3px;">Apple Distribution Certificate</div>
+            <div style="font-size:12px;color:var(--text-muted);">Сертификат для публикации приложений в App Store</div>
+          </div>
+          <span class="badge badge-green">● Активен</span>
+        </div>
+
+        <div class="cert-grid">
+          <div class="cert-field">
+            <div class="cert-field-label">Владелец</div>
+            <div class="cert-field-value">BAZZAR LLC</div>
+          </div>
+          <div class="cert-field">
+            <div class="cert-field-label">Тип</div>
+            <div class="cert-field-value">Apple Distribution</div>
+          </div>
+          <div class="cert-field">
+            <div class="cert-field-label">Дата выдачи</div>
+            <div class="cert-field-value">01 декабря 2024</div>
+          </div>
+          <div class="cert-field">
+            <div class="cert-field-label">Истекает</div>
+            <div class="cert-field-value" style="color:var(--yellow);">01 декабря 2025</div>
+          </div>
+          <div class="cert-field" style="grid-column:span 2;">
+            <div class="cert-field-label">SHA-1 Fingerprint</div>
+            <div class="cert-field-value mono">A3:B9:4F:2D:8E:1C:77:30:F5:A2:6B:D4:93:0E:52:1F:C8:7A:B3:E6</div>
+          </div>
+          <div class="cert-field" style="grid-column:span 2;">
+            <div class="cert-field-label">Team ID</div>
+            <div class="cert-field-value mono" style="display:flex;align-items:center;gap:10px;">
+              BZR4F9X2QK
+              <button class="copy-btn" onclick="navigator.clipboard.writeText('BZR4F9X2QK');this.textContent='Скопировано ✓';setTimeout(()=>this.textContent='Копировать',1500)">Копировать</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn btn-primary btn-sm" onclick="alert('Скачать .cer файл')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Скачать .cer
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="alert('Обновить сертификат')">Обновить</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red);margin-left:auto;" onclick="if(confirm('Отозвать сертификат? Это действие необратимо.'))alert('Сертификат отозван')">Отозвать</button>
+        </div>`;
+    } else {
+      el.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <div>
+            <div style="font-size:16px;font-weight:700;margin-bottom:3px;">Apple Shared Account</div>
+            <div style="font-size:12px;color:var(--text-muted);">Общий аккаунт команды для разработки</div>
+          </div>
+          <span class="badge badge-green">● Активен</span>
+        </div>
+
+        <div class="cert-grid" style="margin-bottom:18px;">
+          <div class="cert-field">
+            <div class="cert-field-label">Apple ID</div>
+            <div class="cert-field-value" style="display:flex;align-items:center;gap:8px;">
+              dev@bazzar.team
+              <button class="copy-btn" onclick="navigator.clipboard.writeText('dev@bazzar.team');this.textContent='✓';setTimeout(()=>this.textContent='Копировать',1500)">Копировать</button>
+            </div>
+          </div>
+          <div class="cert-field">
+            <div class="cert-field-label">Тип аккаунта</div>
+            <div class="cert-field-value">Organisation · App Store Connect</div>
+          </div>
+          <div class="cert-field">
+            <div class="cert-field-label">Пароль</div>
+            <div class="pwd-wrap">
+              <span class="pwd-masked" id="pwdDisplay">••••••••••••</span>
+              <button class="copy-btn" onclick="togglePwd()">Показать</button>
+              <button class="copy-btn" onclick="navigator.clipboard.writeText('Bazzar2025!');this.textContent='✓';setTimeout(()=>this.textContent='Копировать',1500)">Копировать</button>
+            </div>
+          </div>
+          <div class="cert-field">
+            <div class="cert-field-label">Двухфакторная аутентификация</div>
+            <div class="cert-field-value" style="color:var(--accent);">✓ Включена</div>
+          </div>
+          <div class="cert-field" style="grid-column:span 2;">
+            <div class="cert-field-label">App-specific пароль (для CI/CD)</div>
+            <div class="cert-field-value mono" style="display:flex;align-items:center;gap:10px;">
+              xxxx-xxxx-xxxx-xxxx
+              <button class="copy-btn" onclick="navigator.clipboard.writeText('aaaa-bbbb-cccc-dddd');this.textContent='✓';setTimeout(()=>this.textContent='Копировать',1500)">Копировать</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:16px;">
+          <div style="font-size:12px;font-weight:600;margin-bottom:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Доверенные устройства</div>
+          <div class="device-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <div style="flex:1;"><div style="font-size:13px;font-weight:500;">iPhone 15 Pro · Артём К.</div><div style="font-size:11px;color:var(--text-muted);">Последняя активность: сегодня</div></div>
+            <span class="badge badge-green">Доверенное</span>
+          </div>
+          <div class="device-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <div style="flex:1;"><div style="font-size:13px;font-weight:500;">MacBook Pro 14" · CI/CD</div><div style="font-size:11px;color:var(--text-muted);">Последняя активность: вчера</div></div>
+            <span class="badge badge-green">Доверенное</span>
+          </div>
+          <div class="device-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <div style="flex:1;"><div style="font-size:13px;font-weight:500;">iPhone 14 · Алексей К.</div><div style="font-size:11px;color:var(--text-muted);">Последняя активность: 3 дня назад</div></div>
+            <span class="badge badge-muted">Устройство</span>
+          </div>
+        </div>`;
+    }
+    // Initialize pwd toggle after render
+    window.pwdVisible = false;
+    window.togglePwd = function() {
+      pwdVisible = !pwdVisible;
+      const el = document.getElementById('pwdDisplay');
+      const btn = el?.nextElementSibling;
+      if (el) el.textContent = pwdVisible ? 'Bazzar2025!' : '••••••••••••';
+      if (btn) btn.textContent = pwdVisible ? 'Скрыть' : 'Показать';
+    };
+  }
+
+  const builders = {products:buildProducts,chats:buildChats,tasks:buildTasks,finance:buildFinance,team:buildTeam,analytics:buildAnalytics,settings:buildSettings};
+  const secTitles = {products:'Товары и продажи',chats:'Чаты',tasks:'Задания',finance:'Финансы',team:'Команда',analytics:'Аналитика',settings:'Настройки проекта'};
 
   function switchSection(id) {
     activeSection = id;
@@ -424,7 +600,8 @@
     if (navEl) navEl.classList.add('active');
     document.getElementById('sectionTitle').textContent = `${proj.name} — ${secTitles[id]}`;
     document.getElementById('projContent').innerHTML = builders[id]?.() || '';
-    if (id==='chats') {
+    if (id === 'products') renderProdContent();
+    if (id === 'chats') {
       const cb = document.getElementById('projChatBody');
       if (cb) cb.scrollTop = cb.scrollHeight;
     }
@@ -449,7 +626,7 @@
     body.scrollTop = body.scrollHeight;
   }
 
-  switchSection('chats');
+  switchSection(activeSection);
 </script>
 <script src="notifications.js"></script>
 <script>initNotifications();</script>
