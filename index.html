@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StaffBase — Войти</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .login-page { position: relative; overflow: hidden; }
+    .glow {
+      position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0;
+    }
+    .glow-1 { width: 500px; height: 500px; background: rgba(170,255,71,.06); top: -100px; left: -100px; }
+    .glow-2 { width: 300px; height: 300px; background: rgba(170,255,71,.04); bottom: 100px; left: 300px; }
+    .login-left, .login-right { position: relative; z-index: 1; }
+    .divider { display: flex; align-items: center; gap: 12px; margin: 4px 0; }
+    .divider span { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .check-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-sub); }
+    .check-icon { width: 16px; height: 16px; border-radius: 50%; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .check-icon svg { color: var(--accent); }
+    .features { display: flex; flex-direction: column; gap: 12px; margin-top: 40px; }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+
+    <!-- LEFT: Hero -->
+    <div class="login-left">
+      <div class="login-hero">
+        <div class="login-brand">
+          <div class="dot"></div>
+          StaffBase
+        </div>
+        <h1>Управляй<br>командой <span>умнее</span></h1>
+        <p>Единая платформа для HR, расчётов, задач и аналитики. Полный контроль над вашей командой в одном месте.</p>
+
+        <div class="stats-row">
+          <div class="stat-item"><div class="val">2 400+</div><div class="lbl">Активных команд</div></div>
+          <div class="stat-item"><div class="val">98%</div><div class="lbl">Uptime SLA</div></div>
+          <div class="stat-item"><div class="val">4.9★</div><div class="lbl">Оценка клиентов</div></div>
+        </div>
+
+        <div class="features">
+          <div class="check-row">
+            <div class="check-icon">
+              <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
+                <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            Расчёт зарплат и бонусов автоматически
+          </div>
+          <div class="check-row">
+            <div class="check-icon">
+              <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
+                <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            Треккинг задач и KPI по сотрудникам
+          </div>
+          <div class="check-row">
+            <div class="check-icon">
+              <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
+                <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            Аналитика и отчёты в реальном времени
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Form -->
+    <div class="login-right">
+      <div class="login-brand" style="margin-bottom: 32px;">
+        <div class="dot"></div>
+        StaffBase
+      </div>
+      <div class="login-title">Добро пожаловать</div>
+      <div class="login-sub">Введите данные для входа в систему</div>
+
+      <form class="login-form" onsubmit="handleLogin(event)">
+        <div class="input-group">
+          <label>Email</label>
+          <div class="input-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/>
+            </svg>
+            <input type="email" placeholder="you@company.com" id="email" required />
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Пароль</label>
+          <div class="input-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input type="password" placeholder="••••••••" id="password" required />
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:-4px;">
+          <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-sub);cursor:pointer;">
+            <input type="checkbox" style="width:14px;height:14px;accent-color:var(--accent);" />
+            Запомнить меня
+          </label>
+          <a href="#" style="font-size:12px;color:var(--accent);text-decoration:none;">Забыли пароль?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;">
+          Войти в систему
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="divider" style="margin-top:24px;"><span>или войдите как</span></div>
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:12px;" onclick="demoLogin()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+        Демо-доступ (без регистрации)
+      </button>
+
+      <div class="login-footer" style="margin-top:28px;">
+        Нет аккаунта? <a href="#">Запросить доступ</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function handleLogin(e) {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.textContent = 'Проверяем...';
+      btn.disabled = true;
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
+    }
+    function demoLogin() {
+      window.location.href = 'dashboard.html';
+    }
+  </script>
+</body>
+</html>
