@@ -22,6 +22,7 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from '@client/components/layout/Layout';
 import { PageSpinner } from '@client/components/ui/Spinner';
+import { ProtectedRoute } from '@client/auth/ProtectedRoute';
 
 // Lazy-loaded pages (code splitting)
 const LoginPage     = lazy(() => import('@client/pages/LoginPage'));
@@ -42,8 +43,8 @@ export default function App() {
         {/* Страница входа — без общего Layout */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Все основные страницы внутри Layout (Sidebar + Topbar) */}
-        <Route element={<Layout />}>
+        {/* Все основные страницы — защищены auth + Layout (Sidebar + Topbar) */}
+        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/home" replace />} />
           <Route path="/home"           element={<HomePage />} />
           <Route path="/project/:id"    element={<ProjectPage />} />

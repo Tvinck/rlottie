@@ -2,15 +2,18 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { StatusPill, type PillStatus, type PillVariant } from '../components/ui/Badge';
+import { getAuthUser, logout } from '../auth/auth';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [lang,  setLang]  = useState('ru');
 
+  const user = getAuthUser();
+
   const handleLogout = () => {
-    localStorage.removeItem('bazzar_auth');
-    navigate('/login');
+    logout();
+    navigate('/login', { replace: true });
   };
 
   const applyTheme = (t: 'dark' | 'light') => {
@@ -57,11 +60,11 @@ export default function SettingsPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
           <div>
             <label className="form-label">Имя</label>
-            <input className="form-input" defaultValue="Администратор" />
+            <input className="form-input" defaultValue={user?.name ?? ''} />
           </div>
           <div>
             <label className="form-label">Email</label>
-            <input className="form-input" type="email" defaultValue="admin@bazzar.ru" />
+            <input className="form-input" type="email" defaultValue={user?.email ?? ''} />
           </div>
         </div>
         <button className="btn btn-primary btn-sm">Сохранить изменения</button>

@@ -10,6 +10,7 @@ import {
   BarChart2, Settings, Sparkles, LogOut,
 } from 'lucide-react';
 import clsx from 'clsx';
+import { getAuthUser, logout } from '../../auth/auth';
 
 interface NavItem {
   id:    string;
@@ -55,8 +56,6 @@ const NAV: NavSection[] = [
 ];
 
 export function Sidebar() {
-  const navigate = useNavigate();
-
   return (
     <aside className="sidebar">
       {/* Бренд */}
@@ -102,27 +101,45 @@ export function Sidebar() {
       </div>
 
       {/* Пользователь */}
-      <div className="sidebar-bottom">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <div
-            className="avatar"
-            style={{ background: 'var(--accent-dim)', color: 'var(--accent)', fontSize: 11 }}
-          >
-            АК
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 600 }}>Артём К.</div>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Администратор</div>
-          </div>
-          <button
-            className="btn-icon"
-            title="Выйти"
-            onClick={() => navigate('/login')}
-          >
-            <LogOut size={13} />
-          </button>
-        </div>
-      </div>
+      <SidebarUser />
     </aside>
+  );
+}
+
+function SidebarUser() {
+  const navigate = useNavigate();
+  const user     = getAuthUser();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
+
+  const initials = user?.name
+    ? user.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()
+    : 'BZ';
+
+  return (
+    <div className="sidebar-bottom">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+        <div
+          className="avatar"
+          style={{ background: 'var(--accent-dim)', color: 'var(--accent)', fontSize: 11 }}
+        >
+          {initials}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {user?.name ?? 'Гость'}
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {user?.email ?? 'не авторизован'}
+          </div>
+        </div>
+        <button className="btn-icon" title="Выйти" onClick={handleLogout}>
+          <LogOut size={13} />
+        </button>
+      </div>
+    </div>
   );
 }
