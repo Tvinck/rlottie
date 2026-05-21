@@ -6,6 +6,14 @@
   <title>BAZZAR — Главная</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
+    .toggle-switch { position:relative;display:inline-flex;align-items:center;cursor:pointer;width:38px;height:22px;flex-shrink:0; }
+    .toggle-switch input { opacity:0;width:0;height:0;position:absolute; }
+    .ts-track { position:absolute;inset:0;border-radius:11px;background:var(--bg-card2);border:1px solid var(--border);transition:.2s; }
+    .ts-track.on { background:var(--accent-dim);border-color:var(--accent); }
+    .ts-thumb { position:absolute;width:16px;height:16px;border-radius:50%;background:var(--text-muted);top:3px;left:3px;transition:.2s; }
+    .ts-thumb.on { background:var(--accent);left:19px; }
+  </style>
+  <style>
     .home-sidebar {
       width: 220px; flex-shrink: 0; background: var(--bg-secondary);
       border-right: 1px solid var(--border); display: flex; flex-direction: column;
@@ -127,11 +135,14 @@
     <div class="topbar">
       <div class="topbar-title" id="pageTitle">Проекты</div>
       <div class="topbar-actions">
-        <div class="icon-btn" onclick="showSection('messages',document.getElementById('nav-messages'))" style="position:relative;">
+        <div class="icon-btn" onclick="openNotifications()" style="position:relative;" title="Уведомления">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span style="position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--accent);border-radius:50%;"></span>
+          <span class="notif-bell-badge" style="position:absolute;top:-4px;right:-4px;background:var(--accent);color:#0B0B14;font-size:8px;font-weight:800;border-radius:8px;padding:1px 4px;min-width:14px;text-align:center;line-height:14px;"></span>
         </div>
-        <div class="avatar" style="background:var(--accent-dim);color:var(--accent);cursor:pointer;" onclick="showSection('settings',document.getElementById('nav-settings'))">АК</div>
+        <div class="icon-btn" onclick="showSection('messages',document.getElementById('nav-messages'))" title="Сообщения">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="avatar" style="background:var(--accent-dim);color:var(--accent);cursor:pointer;" onclick="showSection('settings',document.getElementById('nav-settings'))" title="Настройки">АК</div>
       </div>
     </div>
 
@@ -164,7 +175,11 @@
             </div>
             <div class="proj-footer">
               <div class="avatar-stack-sm">
-                ${['МС','ИП','АК','ДН','ЕЖ'].map((ini,i)=>`<div class="av" style="background:var(--accent-dim);color:var(--accent);z-index:${5-i}">${ini}</div>`).join('')}
+                <div class="av" style="background:var(--accent-dim);color:var(--accent);z-index:5">МС</div>
+                <div class="av" style="background:var(--accent-dim);color:var(--accent);z-index:4">ИП</div>
+                <div class="av" style="background:var(--accent-dim);color:var(--accent);z-index:3">АК</div>
+                <div class="av" style="background:var(--accent-dim);color:var(--accent);z-index:2">ДН</div>
+                <div class="av" style="background:var(--accent-dim);color:var(--accent);z-index:1">ЕЖ</div>
                 <div class="av" style="background:var(--bg-card2);color:var(--text-muted);">+3</div>
               </div>
               <span style="font-size:11px;color:var(--text-muted);">Обновлено сегодня</span>
@@ -188,7 +203,10 @@
             </div>
             <div class="proj-footer">
               <div class="avatar-stack-sm">
-                ${['АК','НО','ЮФ','ПС'].map((ini,i)=>`<div class="av" style="background:rgba(200,71,255,.15);color:#C847FF;z-index:${4-i}">${ini}</div>`).join('')}
+                <div class="av" style="background:rgba(200,71,255,.15);color:#C847FF;z-index:4">АК</div>
+                <div class="av" style="background:rgba(200,71,255,.15);color:#C847FF;z-index:3">НО</div>
+                <div class="av" style="background:rgba(200,71,255,.15);color:#C847FF;z-index:2">ЮФ</div>
+                <div class="av" style="background:rgba(200,71,255,.15);color:#C847FF;z-index:1">ПС</div>
                 <div class="av" style="background:var(--bg-card2);color:var(--text-muted);">+1</div>
               </div>
               <span style="font-size:11px;color:var(--text-muted);">Обновлено вчера</span>
@@ -289,15 +307,22 @@
           </div>
           <div class="card">
             <div style="font-size:11px;font-weight:600;margin-bottom:14px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Уведомления</div>
-            ${[['Новые задачи',true],['Сообщения',true],['События календаря',true],['Финансовые обновления',false]].map(([l,on])=>`
             <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);">
-              <span style="font-size:13px;">${l}</span>
-              <label style="position:relative;width:36px;height:20px;flex-shrink:0;cursor:pointer;">
-                <input type="checkbox" ${on?'checked':''} style="opacity:0;width:0;height:0;" />
-                <span style="position:absolute;inset:0;background:${on?'var(--accent-dim)':'var(--bg-card2)'};border:1px solid ${on?'var(--accent)':'var(--border)'};border-radius:10px;transition:.2s;"></span>
-                <span style="position:absolute;width:14px;height:14px;border-radius:50%;background:${on?'var(--accent)':'var(--text-muted)'};top:2px;left:${on?'18px':'2px'};transition:.2s;"></span>
-              </label>
-            </div>`).join('')}
+              <span style="font-size:13px;">Новые задачи</span>
+              <label class="toggle-switch"><input type="checkbox" checked onchange="toggleStyle(this)" /><span class="ts-track on"></span><span class="ts-thumb on"></span></label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+              <span style="font-size:13px;">Сообщения</span>
+              <label class="toggle-switch"><input type="checkbox" checked onchange="toggleStyle(this)" /><span class="ts-track on"></span><span class="ts-thumb on"></span></label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+              <span style="font-size:13px;">События календаря</span>
+              <label class="toggle-switch"><input type="checkbox" checked onchange="toggleStyle(this)" /><span class="ts-track on"></span><span class="ts-thumb on"></span></label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;">
+              <span style="font-size:13px;">Финансовые обновления</span>
+              <label class="toggle-switch"><input type="checkbox" onchange="toggleStyle(this)" /><span class="ts-track"></span><span class="ts-thumb"></span></label>
+            </div>
           </div>
         </div>
       </div>
@@ -436,7 +461,16 @@
 
   function changeMonth(dir) { calDate.setMonth(calDate.getMonth()+dir); renderCalendar(); }
 
+  function toggleStyle(input) {
+    const track = input.nextElementSibling;
+    const thumb = track.nextElementSibling;
+    if (input.checked) { track.classList.add('on'); thumb.classList.add('on'); }
+    else { track.classList.remove('on'); thumb.classList.remove('on'); }
+  }
+
   renderCalendar();
 </script>
+<script src="notifications.js"></script>
+<script>initNotifications();</script>
 </body>
 </html>
