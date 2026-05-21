@@ -121,7 +121,7 @@
             <input type="checkbox" style="width:14px;height:14px;accent-color:var(--accent);" />
             Запомнить меня
           </label>
-          <a href="#" style="font-size:12px;color:var(--accent);text-decoration:none;">Забыли пароль?</a>
+          <a href="forgot-password.html" style="font-size:12px;color:var(--accent);text-decoration:none;">Забыли пароль?</a>
         </div>
 
         <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;">
@@ -152,10 +152,10 @@
       const btn = e.target.querySelector('button[type="submit"]');
       btn.innerHTML = 'Проверяем...';
       btn.disabled = true;
-      setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
+      setTimeout(() => { window.location.href = 'home.html'; }, 800);
     }
     function demoLogin() {
-      window.location.href = 'dashboard.html';
+      window.location.href = 'home.html';
     }
   </script>
 </body>
