@@ -1,19 +1,24 @@
 function renderNav(activePage) {
   const nav = [
     {
-      section: 'Главное',
+      section: 'Рабочее пространство',
       items: [
-        { id: 'home', label: 'Главная', href: 'home.html', badge: null, icon: `<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>` },
+        { id: 'home',     label: 'Главная',    href: 'home.html',      badge: null, icon: `<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>` },
+        { id: 'messages', label: 'Сообщения',  href: 'messages.html',  badge: 3,    icon: `<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>` },
+      ]
+    },
+    {
+      section: 'Команда',
+      items: [
         { id: 'employees', label: 'Сотрудники', href: 'employees.html', badge: 24, icon: `<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>` },
-        { id: 'tasks', label: 'Задачи', href: 'tasks.html', badge: 7, icon: `<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>` },
-        { id: 'messages', label: 'Сообщения', href: 'messages.html', badge: 3, icon: `<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>` },
+        { id: 'tasks',     label: 'Задачи',     href: 'tasks.html',     badge: 7,  icon: `<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>` },
       ]
     },
     {
       section: 'Финансы',
       items: [
-        { id: 'salaries', label: 'Зарплаты', href: 'salaries.html', badge: null, icon: `<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>` },
-        { id: 'invoices', label: 'Счета', href: 'invoices.html', badge: null, icon: `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/>` },
+        { id: 'salaries',  label: 'Зарплаты',  href: 'salaries.html',  badge: null, icon: `<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>` },
+        { id: 'invoices',  label: 'Счета',     href: 'invoices.html',  badge: null, icon: `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/>` },
         { id: 'analytics', label: 'Аналитика', href: 'analytics.html', badge: null, icon: `<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>` },
       ]
     },
