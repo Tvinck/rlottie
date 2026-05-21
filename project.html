@@ -430,6 +430,10 @@
     }
   }
 
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
   function projSend() {
     const input = document.getElementById('projChatInput');
     const text  = input.value.trim();
@@ -437,7 +441,10 @@
     const now  = new Date();
     const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
     const body = document.getElementById('projChatBody');
-    body.innerHTML += `<div class="bubble own"><div class="bubble-body">${text}</div><div class="bubble-meta">${time}</div></div>`;
+    const div  = document.createElement('div');
+    div.className = 'bubble own';
+    div.innerHTML = `<div class="bubble-body">${escHtml(text)}</div><div class="bubble-meta">${time}</div>`;
+    body.appendChild(div);
     input.value = '';
     body.scrollTop = body.scrollHeight;
   }

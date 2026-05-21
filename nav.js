@@ -3,7 +3,7 @@ function renderNav(activePage) {
     {
       section: 'Главное',
       items: [
-        { id: 'dashboard', label: 'Дашборд', href: 'dashboard.html', badge: null, icon: `<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>` },
+        { id: 'home', label: 'Главная', href: 'home.html', badge: null, icon: `<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>` },
         { id: 'employees', label: 'Сотрудники', href: 'employees.html', badge: 24, icon: `<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>` },
         { id: 'tasks', label: 'Задачи', href: 'tasks.html', badge: 7, icon: `<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>` },
         { id: 'messages', label: 'Сообщения', href: 'messages.html', badge: 3, icon: `<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>` },

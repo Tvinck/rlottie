@@ -83,18 +83,30 @@
           <!-- Notifications -->
           <div class="settings-section card" id="section-notifications">
             <div class="section-title">Уведомления</div>
-            ${[
-              ['Новые задачи','Уведомлять о назначенных задачах',true],
-              ['Сообщения','Push-уведомления о новых сообщениях',true],
-              ['Зарплаты','Напоминания о выплатах',true],
-              ['Просроченные счета','Уведомления о просроченных счетах',false],
-              ['Изменения в команде','Новые сотрудники, изменение ролей',false],
-              ['Еженедельный отчёт','Отправлять отчёт каждый понедельник',true],
-            ].map(([label,desc,on])=>`
-              <div class="toggle-row">
-                <div class="toggle-info"><div class="t-label">${label}</div><div class="t-desc">${desc}</div></div>
-                <label class="toggle"><input type="checkbox" ${on?'checked':''} /><span class="toggle-slider"></span></label>
-              </div>`).join('')}
+            <div class="toggle-row">
+              <div class="toggle-info"><div class="t-label">Новые задачи</div><div class="t-desc">Уведомлять о назначенных задачах</div></div>
+              <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><div class="t-label">Сообщения</div><div class="t-desc">Push-уведомления о новых сообщениях</div></div>
+              <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><div class="t-label">Зарплаты</div><div class="t-desc">Напоминания о выплатах</div></div>
+              <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><div class="t-label">Просроченные счета</div><div class="t-desc">Уведомления о просроченных счетах</div></div>
+              <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><div class="t-label">Изменения в команде</div><div class="t-desc">Новые сотрудники, изменение ролей</div></div>
+              <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info"><div class="t-label">Еженедельный отчёт</div><div class="t-desc">Отправлять отчёт каждый понедельник</div></div>
+              <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            </div>
             <button class="btn btn-primary save-btn" onclick="alert('Настройки уведомлений сохранены!')">Сохранить</button>
           </div>
 
@@ -125,22 +137,42 @@
               <div style="font-size:13px;color:var(--text-muted);">24 сотрудника</div>
               <button class="btn btn-primary btn-sm" onclick="alert('Пригласить сотрудника')">+ Пригласить</button>
             </div>
-            ${[
-              ['Мария Смирнова','Frontend Dev','admin'],
-              ['Иван Петров','Backend Dev','editor'],
-              ['Анна Козлова','Designer','editor'],
-              ['Дмитрий Новиков','DevOps','viewer'],
-              ['Елена Жукова','QA','editor'],
-              ['Алексей Ким','PM','admin'],
-            ].map(([name,role,access])=>`
-              <div class="member-row">
-                <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">${name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
-                <div style="flex:1;"><div style="font-size:13px;font-weight:500">${name}</div><div style="font-size:11px;color:var(--text-muted)">${role}</div></div>
-                <select class="role-select" onchange="alert('Роль изменена')"><option ${access==='admin'?'selected':''}>admin</option><option ${access==='editor'?'selected':''}>editor</option><option ${access==='viewer'?'selected':''}>viewer</option></select>
-                <button class="btn btn-ghost btn-sm" style="padding:5px 8px;" onclick="alert('Удалить ${name}?')">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-                </button>
-              </div>`).join('')}
+            <div class="member-row">
+              <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">МС</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:500">Мария Смирнова</div><div style="font-size:11px;color:var(--text-muted)">Frontend Dev</div></div>
+              <select class="role-select" onchange="alert('Роль изменена')"><option selected>admin</option><option>editor</option><option>viewer</option></select>
+              <button class="btn btn-ghost btn-sm" style="padding:5px 8px;" onclick="alert('Удалить сотрудника?')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+            </div>
+            <div class="member-row">
+              <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">ИП</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:500">Иван Петров</div><div style="font-size:11px;color:var(--text-muted)">Backend Dev</div></div>
+              <select class="role-select" onchange="alert('Роль изменена')"><option>admin</option><option selected>editor</option><option>viewer</option></select>
+              <button class="btn btn-ghost btn-sm" style="padding:5px 8px;" onclick="alert('Удалить сотрудника?')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+            </div>
+            <div class="member-row">
+              <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">АК</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:500">Анна Козлова</div><div style="font-size:11px;color:var(--text-muted)">Designer</div></div>
+              <select class="role-select" onchange="alert('Роль изменена')"><option>admin</option><option selected>editor</option><option>viewer</option></select>
+              <button class="btn btn-ghost btn-sm" style="padding:5px 8px;" onclick="alert('Удалить сотрудника?')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+            </div>
+            <div class="member-row">
+              <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">ДН</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:500">Дмитрий Новиков</div><div style="font-size:11px;color:var(--text-muted)">DevOps</div></div>
+              <select class="role-select" onchange="alert('Роль изменена')"><option>admin</option><option>editor</option><option selected>viewer</option></select>
+              <button class="btn btn-ghost btn-sm" style="padding:5px 8px;" onclick="alert('Удалить сотрудника?')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+            </div>
+            <div class="member-row">
+              <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">ЕЖ</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:500">Елена Жукова</div><div style="font-size:11px;color:var(--text-muted)">QA</div></div>
+              <select class="role-select" onchange="alert('Роль изменена')"><option>admin</option><option selected>editor</option><option>viewer</option></select>
+              <button class="btn btn-ghost btn-sm" style="padding:5px 8px;" onclick="alert('Удалить сотрудника?')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+            </div>
+            <div class="member-row">
+              <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">АК</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:500">Алексей Ким</div><div style="font-size:11px;color:var(--text-muted)">PM</div></div>
+              <select class="role-select" onchange="alert('Роль изменена')"><option selected>admin</option><option>editor</option><option>viewer</option></select>
+              <button class="btn btn-ghost btn-sm" style="padding:5px 8px;" onclick="alert('Удалить сотрудника?')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+            </div>
           </div>
 
           <!-- Project -->

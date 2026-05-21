@@ -114,8 +114,8 @@
       Календарь
     </button>
     <button class="home-nav-item" id="nav-settings" onclick="showSection('settings',this)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Настройки
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Профиль
     </button>
 
     <div style="margin-top:auto;padding-top:20px;border-top:1px solid var(--border);">
@@ -142,7 +142,7 @@
         <div class="icon-btn" onclick="showSection('messages',document.getElementById('nav-messages'))" title="Сообщения">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
-        <div class="avatar" style="background:var(--accent-dim);color:var(--accent);cursor:pointer;" onclick="showSection('settings',document.getElementById('nav-settings'))" title="Настройки">АК</div>
+        <div class="avatar" style="background:var(--accent-dim);color:var(--accent);cursor:pointer;" onclick="showSection('settings',document.getElementById('nav-settings'))" title="Профиль">АК</div>
       </div>
     </div>
 
@@ -227,11 +227,17 @@
 
       <!-- ─── MESSAGES ─── -->
       <div class="section" id="section-messages">
-        <div style="display:grid;grid-template-columns:320px 1fr;gap:16px;height:calc(100vh - 130px);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-size:13px;color:var(--text-muted);">Последние переписки</div>
+          <a href="messages.html" style="font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:5px;">
+            Открыть все чаты
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+        <div style="display:grid;grid-template-columns:320px 1fr;gap:16px;height:calc(100vh - 165px);">
           <!-- List -->
           <div class="card" style="padding:0;overflow:hidden;display:flex;flex-direction:column;">
             <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
-              <div style="font-size:14px;font-weight:600;margin-bottom:10px;">Все сообщения</div>
               <div style="display:flex;align-items:center;gap:8px;background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                 <input style="background:none;border:none;outline:none;color:var(--text-primary);font-size:12px;font-family:inherit;width:100%;" placeholder="Поиск..." />
@@ -241,9 +247,12 @@
           </div>
           <!-- Chat -->
           <div class="card" style="padding:0;overflow:hidden;display:flex;flex-direction:column;">
-            <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
-              <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">АК</div>
-              <div><div style="font-size:13px;font-weight:600;">Алексей Ким</div><div style="font-size:11px;color:var(--accent);">● онлайн</div></div>
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;" id="chatHeader">
+              <div class="avatar" style="background:var(--accent-dim);color:var(--accent);" id="chatHeaderAv">АК</div>
+              <div>
+                <div style="font-size:13px;font-weight:600;" id="chatHeaderName">Алексей Ким</div>
+                <div style="font-size:11px;color:var(--accent);" id="chatHeaderStatus">● онлайн</div>
+              </div>
             </div>
             <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;" id="chatMsgs"></div>
             <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;">
@@ -332,7 +341,7 @@
 </div>
 
 <script>
-  const titles = {projects:'Проекты',messages:'Сообщения',calendar:'Календарь',settings:'Настройки'};
+  const titles = {projects:'Проекты',messages:'Сообщения',calendar:'Календарь',settings:'Профиль'};
 
   function showSection(id, btn) {
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -344,32 +353,50 @@
 
   // ─── MESSAGES ───
   const contacts = [
-    {name:'Алексей Ким',last:'Жди, уточняю',time:'11:02',unread:2,online:true},
-    {name:'BAZZAR MARKET',last:'Иван: PR готов к ревью',time:'10:45',unread:1,online:false,channel:true},
-    {name:'PIXEL',last:'Анна: макеты готовы',time:'вчера',unread:0,online:false,channel:true},
-    {name:'Мария Смирнова',last:'Окей, поняла!',time:'вчера',unread:1,online:true},
-    {name:'Иван Петров',last:'Смотрю сейчас',time:'пн',unread:0,online:false},
+    {name:'Алексей Ким',last:'Жди, уточняю',time:'11:02',unread:2,online:true,ini:'АК'},
+    {name:'BAZZAR MARKET',last:'Иван: PR готов к ревью',time:'10:45',unread:1,online:false,channel:true,ini:'#'},
+    {name:'PIXEL',last:'Анна: макеты готовы',time:'вчера',unread:0,online:false,channel:true,ini:'#'},
+    {name:'Мария Смирнова',last:'Окей, поняла!',time:'вчера',unread:1,online:true,ini:'МС'},
+    {name:'Иван Петров',last:'Смотрю сейчас',time:'пн',unread:0,online:false,ini:'ИП'},
   ];
+  let activeContact = 0;
   const msgList = document.getElementById('msgListEl');
-  contacts.forEach(c => {
-    const ini = c.channel ? '#' : c.name.split(' ').map(w=>w[0]).join('').slice(0,2);
-    const bg  = c.channel ? 'rgba(170,255,71,.1)' : 'var(--accent-dim)';
-    msgList.innerHTML += `
-      <div class="msg-item ${c.unread?'unread':''}" style="padding:12px 16px;">
-        <div style="position:relative;flex-shrink:0;">
-          <div class="avatar" style="background:${bg};color:var(--accent);font-size:${c.channel?'14px':'13px'}">${ini}</div>
-          ${c.online?'<div style="position:absolute;bottom:0;right:0;width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid var(--bg-secondary);"></div>':''}
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div class="msg-name">${c.name}</div>
-          <div class="msg-text">${c.last}</div>
-        </div>
-        <div class="msg-right">
-          <div class="msg-time">${c.time}</div>
-          ${c.unread?`<div style="width:16px;height:16px;background:var(--accent);color:#0B0B14;font-size:9px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;">${c.unread}</div>`:''}
-        </div>
-      </div>`;
-  });
+
+  function openContact(idx) {
+    activeContact = idx;
+    renderMsgList();
+    const c = contacts[idx];
+    document.getElementById('chatHeaderAv').textContent = c.ini;
+    document.getElementById('chatHeaderName').textContent = c.name;
+    document.getElementById('chatHeaderStatus').textContent = c.online ? '● онлайн' : '● офлайн';
+    document.getElementById('chatHeaderStatus').style.color = c.online ? 'var(--accent)' : 'var(--text-muted)';
+    document.getElementById('chatMsgs').innerHTML = '';
+    document.getElementById('homeMsg').placeholder = 'Написать ' + (c.channel ? 'в ' : '') + c.name + '...';
+  }
+
+  function renderMsgList() {
+    msgList.innerHTML = '';
+    contacts.forEach((c, idx) => {
+      const bg = c.channel ? 'rgba(170,255,71,.1)' : 'var(--accent-dim)';
+      const isActive = idx === activeContact;
+      msgList.innerHTML += `
+        <div class="msg-item ${c.unread?'unread':''}" style="padding:12px 16px;${isActive?'background:rgba(170,255,71,.06);':''}" onclick="openContact(${idx})" style="cursor:pointer;">
+          <div style="position:relative;flex-shrink:0;">
+            <div class="avatar" style="background:${bg};color:var(--accent);font-size:${c.channel?'14px':'13px'}">${c.ini}</div>
+            ${c.online?'<div style="position:absolute;bottom:0;right:0;width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid var(--bg-secondary);"></div>':''}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div class="msg-name">${c.name}</div>
+            <div class="msg-text">${c.last}</div>
+          </div>
+          <div class="msg-right">
+            <div class="msg-time">${c.time}</div>
+            ${c.unread?`<div style="width:16px;height:16px;background:var(--accent);color:#0B0B14;font-size:9px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;">${c.unread}</div>`:''}
+          </div>
+        </div>`;
+    });
+  }
+  renderMsgList();
 
   const chatData = [
     {own:false,text:'Привет! Как дела с дашбордом?',time:'10:55'},
@@ -380,9 +407,20 @@
   ];
   const chatEl = document.getElementById('chatMsgs');
   chatData.forEach(m => {
-    chatEl.innerHTML += `<div style="max-width:65%;align-self:${m.own?'flex-end':'flex-start'};"><div style="padding:10px 14px;border-radius:${m.own?'14px 14px 4px 14px':'14px 14px 14px 4px'};font-size:13px;line-height:1.5;background:${m.own?'var(--accent)':'var(--bg-card2)'};color:${m.own?'#0B0B14':'var(--text-primary)'};">${m.text}</div><div style="font-size:10px;color:var(--text-muted);margin-top:3px;${m.own?'text-align:right;':''}">${m.time}</div></div>`;
+    appendBubble(chatEl, m.text, m.own, m.time);
   });
   chatEl.scrollTop = chatEl.scrollHeight;
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function appendBubble(el, text, own, time) {
+    const div = document.createElement('div');
+    div.style.cssText = `max-width:65%;align-self:${own?'flex-end':'flex-start'};`;
+    div.innerHTML = `<div style="padding:10px 14px;border-radius:${own?'14px 14px 4px 14px':'14px 14px 14px 4px'};font-size:13px;line-height:1.5;background:${own?'var(--accent)':'var(--bg-card2)'};color:${own?'#0B0B14':'var(--text-primary)'};">${escHtml(text)}</div><div style="font-size:10px;color:var(--text-muted);margin-top:3px;${own?'text-align:right;':''}">${time}</div>`;
+    el.appendChild(div);
+  }
 
   function sendHomeMsg() {
     const input = document.getElementById('homeMsg');
@@ -390,7 +428,7 @@
     if (!text) return;
     const now = new Date();
     const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
-    chatEl.innerHTML += `<div style="max-width:65%;align-self:flex-end;"><div style="padding:10px 14px;border-radius:14px 14px 4px 14px;font-size:13px;line-height:1.5;background:var(--accent);color:#0B0B14;">${text}</div><div style="font-size:10px;color:var(--text-muted);margin-top:3px;text-align:right;">${time}</div></div>`;
+    appendBubble(chatEl, text, true, time);
     input.value = '';
     chatEl.scrollTop = chatEl.scrollHeight;
   }
