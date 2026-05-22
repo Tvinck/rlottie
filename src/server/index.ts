@@ -15,10 +15,13 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import staticFiles from '@fastify/static';
 import websocket, { type SocketStream } from '@fastify/websocket';
+import rateLimit from '@fastify/rate-limit';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 import { Config } from './config.js';
+import { verifyJwt } from './services/auth.js';
+import { startAiPoller } from './services/aiPoller.js';
 import authRoutes     from './routes/auth.js';
 import adminRoutes    from './routes/admin.js';
 import projectRoutes  from './routes/projects.js';
@@ -27,6 +30,14 @@ import employeeRoutes from './routes/employees.js';
 import financeRoutes  from './routes/finance.js';
 import aiRoutes       from './routes/ai.js';
 import messageRoutes  from './routes/messages.js';
+
+/** Эндпоинты, доступные без JWT (login/register/health/webhook). */
+const PUBLIC_API_PATHS = new Set<string>([
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/health',
+  '/api/ai/callback',  // защищён собственным секретом в URL (?token=…)
+]);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -49,6 +60,37 @@ await app.register(cors, {
 
 // WebSocket поддержка
 await app.register(websocket);
+
+// Rate limiting — защищаем /api/ai/* от перебора (KIE.AI кредиты).
+// 10 запросов/минуту на IP для AI; 100/мин для остальных /api.
+await app.register(rateLimit, {
+  global: false, // включаем избирательно через config на маршрутах
+  max:    100,
+  timeWindow: '1 minute',
+  keyGenerator: (req) => req.ip,
+});
+
+// ── Глобальный JWT preHandler для /api/* ────────────────────────
+// Любой эндпоинт /api/*, кроме PUBLIC_API_PATHS, требует валидный Bearer-токен.
+app.addHook('onRequest', async (req, reply) => {
+  if (!req.url.startsWith('/api/')) return;
+
+  // Берём path без query-string
+  const pathOnly = req.url.split('?')[0] ?? req.url;
+  if (PUBLIC_API_PATHS.has(pathOnly)) return;
+
+  const header = req.headers['authorization'];
+  if (!header?.startsWith('Bearer ')) {
+    return reply.status(401).send({ ok: false, error: 'Требуется авторизация' });
+  }
+
+  const payload = await verifyJwt(header.slice(7));
+  if (!payload) {
+    return reply.status(401).send({ ok: false, error: 'Токен недействителен или истёк' });
+  }
+
+  req.user = payload;
+});
 
 // Статические файлы: только в production. В dev фронтенд обслуживает Vite (порт 5173),
 // а Fastify (порт 3000) отдаёт только /api/* и /ws.
@@ -146,6 +188,10 @@ try {
   console.log(`\n✅ BAZZAR сервер запущен: http://${Config.HOST}:${Config.PORT}`);
   console.log(`   Среда: ${Config.NODE_ENV}`);
   console.log(`   БД:    ${Config.DB_PATH}\n`);
+
+  // Фоновый поллер AI-задач: опрашивает KIE.AI каждые 10s и обновляет статусы в БД,
+  // вещая события через WS. Заменяет синхронный опрос на каждый запрос клиента.
+  startAiPoller({ intervalMs: 10_000, broadcast: broadcastWs });
 } catch (err) {
   app.log.error(err);
   process.exit(1);

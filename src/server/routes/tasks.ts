@@ -19,21 +19,28 @@ export default async function taskRoutes(app: FastifyInstance) {
   const db = getDb();
 
   // ── GET /api/tasks ────────────────────────────────────────────
-  // Query params: project_id, status, assignee_id, tag
+  // Query params: project_id, status, limit (default 100, max 500), offset
   app.get(
     '/api/tasks',
-    async (req: FastifyRequest<{ Querystring: { project_id?: string; status?: string } }>, reply) => {
+    async (req: FastifyRequest<{ Querystring: { project_id?: string; status?: string; limit?: string; offset?: string } }>, reply) => {
       const { project_id, status } = req.query;
+      const limit  = Math.min(500, Math.max(1, parseInt(req.query.limit  ?? '100', 10) || 100));
+      const offset = Math.max(0,  parseInt(req.query.offset ?? '0', 10) || 0);
 
-      let sql = 'SELECT t.*, e.name AS assignee_name FROM tasks t LEFT JOIN employees e ON e.id = t.assignee_id WHERE 1=1';
+      let where = '1=1';
       const params: unknown[] = [];
+      if (project_id) { where += ' AND t.project_id = ?'; params.push(project_id); }
+      if (status)     { where += ' AND t.status = ?';     params.push(status); }
 
-      if (project_id) { sql += ' AND t.project_id = ?'; params.push(project_id); }
-      if (status)     { sql += ' AND t.status = ?';     params.push(status); }
+      const total = (queryOne<{ cnt: number }>(db, `SELECT COUNT(*) as cnt FROM tasks t WHERE ${where}`, params) ?? { cnt: 0 }).cnt;
+      const tasks = queryAll<Task>(
+        db,
+        `SELECT t.*, e.name AS assignee_name FROM tasks t LEFT JOIN employees e ON e.id = t.assignee_id
+         WHERE ${where} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`,
+        [...params, limit, offset],
+      );
 
-      sql += ' ORDER BY t.created_at DESC';
-
-      return reply.send({ ok: true, data: queryAll<Task>(db, sql, params) });
+      return reply.send({ ok: true, data: tasks, meta: { total, limit, offset } });
     },
   );
 

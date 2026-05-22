@@ -1,24 +1,43 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { create } from 'zustand';
 import { Send, Download, Wand2, Video, Music, MessageSquare, RefreshCw } from 'lucide-react';
 import { useGenerateImage, useGenerateVideo, useGenerateMusic, useAiChat, useAiJob } from '../hooks/useAiJob';
 import { Spinner, TypingDots } from '../components/ui/Spinner';
 import type { KieChatMessage } from '../../../shared/types';
 
+// ── Постоянное состояние инструментов ──────────────────────────────
+// Хранится в Zustand, чтобы переключение вкладок не сбрасывало введённый
+// промпт и текущий jobId. Сохраняется на время сессии (не в localStorage).
+
+interface ToolsState {
+  image: { prompt: string; jobId: string | null; width: number; height: number };
+  video: { prompt: string; jobId: string | null; duration: 5 | 10; ratio: '16:9' | '9:16' | '1:1' };
+  music: { prompt: string; jobId: string | null; style: string; instrumental: boolean };
+  chat:  { messages: KieChatMessage[]; input: string };
+  set:   <K extends 'image' | 'video' | 'music' | 'chat'>(tool: K, patch: Partial<ToolsState[K]>) => void;
+}
+
+const useToolsStore = create<ToolsState>((set) => ({
+  image: { prompt: '', jobId: null, width: 1024, height: 1024 },
+  video: { prompt: '', jobId: null, duration: 5, ratio: '16:9' },
+  music: { prompt: '', jobId: null, style: '', instrumental: false },
+  chat:  { messages: [], input: '' },
+  set:   (tool, patch) => set((s) => ({ ...s, [tool]: { ...s[tool], ...patch } })),
+}));
+
 // ── Image tool ──────────────────────────────────────────────────────
 
 function ImageTool() {
-  const [prompt, setPrompt] = useState('');
-  const [jobId, setJobId]   = useState<string | null>(null);
-  const [width, setWidth]   = useState(1024);
-  const [height, setHeight] = useState(1024);
-  const generate            = useGenerateImage();
-  const { data: job }       = useAiJob(jobId);
+  const state    = useToolsStore((s) => s.image);
+  const update   = useToolsStore((s) => s.set);
+  const generate = useGenerateImage();
+  const { data: job } = useAiJob(state.jobId);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await generate.mutateAsync({ prompt, width, height });
-    setJobId(result.id);
+    const result = await generate.mutateAsync({ prompt: state.prompt, width: state.width, height: state.height });
+    update('image', { jobId: result.id });
   };
 
   return (
@@ -30,8 +49,8 @@ function ImageTool() {
             <label className="form-label">Промпт *</label>
             <textarea
               className="form-input"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              value={state.prompt}
+              onChange={(e) => update('image', { prompt: e.target.value })}
               rows={4}
               placeholder="A futuristic city at night with neon lights, cyberpunk style..."
               style={{ resize: 'vertical' }}
@@ -41,7 +60,7 @@ function ImageTool() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <div>
               <label className="form-label">Ширина (px)</label>
-              <select className="form-input" value={width} onChange={(e) => setWidth(Number(e.target.value))}>
+              <select className="form-input" value={state.width} onChange={(e) => update('image', { width: Number(e.target.value) })}>
                 <option value={512}>512</option>
                 <option value={768}>768</option>
                 <option value={1024}>1024</option>
@@ -50,7 +69,7 @@ function ImageTool() {
             </div>
             <div>
               <label className="form-label">Высота (px)</label>
-              <select className="form-input" value={height} onChange={(e) => setHeight(Number(e.target.value))}>
+              <select className="form-input" value={state.height} onChange={(e) => update('image', { height: Number(e.target.value) })}>
                 <option value={512}>512</option>
                 <option value={768}>768</option>
                 <option value={1024}>1024</option>
@@ -63,9 +82,9 @@ function ImageTool() {
           </button>
         </form>
 
-        {jobId && (
+        {state.jobId && (
           <div style={{ marginTop: 16 }}>
-            <JobStatus jobId={jobId} />
+            <JobStatus jobId={state.jobId} />
           </div>
         )}
       </div>
@@ -98,17 +117,15 @@ function ImageTool() {
 // ── Video tool ──────────────────────────────────────────────────────
 
 function VideoTool() {
-  const [prompt, setPrompt]   = useState('');
-  const [jobId, setJobId]     = useState<string | null>(null);
-  const [duration, setDuration] = useState<5 | 10>(5);
-  const [ratio, setRatio]     = useState<'16:9' | '9:16' | '1:1'>('16:9');
-  const generate              = useGenerateVideo();
-  const { data: job }         = useAiJob(jobId);
+  const state    = useToolsStore((s) => s.video);
+  const update   = useToolsStore((s) => s.set);
+  const generate = useGenerateVideo();
+  const { data: job } = useAiJob(state.jobId);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await generate.mutateAsync({ prompt, duration, ratio });
-    setJobId(result.id);
+    const result = await generate.mutateAsync({ prompt: state.prompt, duration: state.duration, ratio: state.ratio });
+    update('video', { jobId: result.id });
   };
 
   return (
@@ -120,8 +137,8 @@ function VideoTool() {
             <label className="form-label">Промпт *</label>
             <textarea
               className="form-input"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              value={state.prompt}
+              onChange={(e) => update('video', { prompt: e.target.value })}
               rows={4}
               placeholder="A drone shot of mountain landscape at sunset..."
               style={{ resize: 'vertical' }}
@@ -131,14 +148,14 @@ function VideoTool() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <div>
               <label className="form-label">Длительность</label>
-              <select className="form-input" value={duration} onChange={(e) => setDuration(Number(e.target.value) as 5 | 10)}>
+              <select className="form-input" value={state.duration} onChange={(e) => update('video', { duration: Number(e.target.value) as 5 | 10 })}>
                 <option value={5}>5 сек</option>
                 <option value={10}>10 сек</option>
               </select>
             </div>
             <div>
               <label className="form-label">Соотношение сторон</label>
-              <select className="form-input" value={ratio} onChange={(e) => setRatio(e.target.value as '16:9' | '9:16' | '1:1')}>
+              <select className="form-input" value={state.ratio} onChange={(e) => update('video', { ratio: e.target.value as '16:9' | '9:16' | '1:1' })}>
                 <option value="16:9">16:9 (горизонталь)</option>
                 <option value="9:16">9:16 (вертикаль)</option>
                 <option value="1:1">1:1 (квадрат)</option>
@@ -150,9 +167,9 @@ function VideoTool() {
           </button>
         </form>
 
-        {jobId && (
+        {state.jobId && (
           <div style={{ marginTop: 16 }}>
-            <JobStatus jobId={jobId} />
+            <JobStatus jobId={state.jobId} />
           </div>
         )}
       </div>
@@ -185,19 +202,17 @@ function VideoTool() {
 // ── Music tool ──────────────────────────────────────────────────────
 
 function MusicTool() {
-  const [prompt, setPrompt]   = useState('');
-  const [style, setStyle]     = useState('');
-  const [jobId, setJobId]     = useState<string | null>(null);
-  const [instrumental, setInstrumental] = useState(false);
-  const generate              = useGenerateMusic();
-  const { data: job }         = useAiJob(jobId);
+  const state    = useToolsStore((s) => s.music);
+  const update   = useToolsStore((s) => s.set);
+  const generate = useGenerateMusic();
+  const { data: job } = useAiJob(state.jobId);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const musicReq: Parameters<typeof generate.mutateAsync>[0] = { prompt, instrumental, model: 'V5' };
-    if (style) musicReq.style = style;
+    const musicReq: Parameters<typeof generate.mutateAsync>[0] = { prompt: state.prompt, instrumental: state.instrumental, model: 'V5' };
+    if (state.style) musicReq.style = state.style;
     const result = await generate.mutateAsync(musicReq);
-    setJobId(result.id);
+    update('music', { jobId: result.id });
   };
 
   return (
@@ -209,8 +224,8 @@ function MusicTool() {
             <label className="form-label">Описание музыки *</label>
             <textarea
               className="form-input"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              value={state.prompt}
+              onChange={(e) => update('music', { prompt: e.target.value })}
               rows={3}
               placeholder="Energetic electronic music with heavy bass for a product launch video..."
               style={{ resize: 'vertical' }}
@@ -221,8 +236,8 @@ function MusicTool() {
             <label className="form-label">Стиль (опционально)</label>
             <input
               className="form-input"
-              value={style}
-              onChange={(e) => setStyle(e.target.value)}
+              value={state.style}
+              onChange={(e) => update('music', { style: e.target.value })}
               placeholder="electronic, hip-hop, cinematic..."
             />
           </div>
@@ -230,8 +245,8 @@ function MusicTool() {
             <input
               type="checkbox"
               id="instrumental"
-              checked={instrumental}
-              onChange={(e) => setInstrumental(e.target.checked)}
+              checked={state.instrumental}
+              onChange={(e) => update('music', { instrumental: e.target.checked })}
             />
             <label htmlFor="instrumental" style={{ fontSize: 13, cursor: 'pointer' }}>
               Инструментальная (без вокала)
@@ -242,9 +257,9 @@ function MusicTool() {
           </button>
         </form>
 
-        {jobId && (
+        {state.jobId && (
           <div style={{ marginTop: 16 }}>
-            <JobStatus jobId={jobId} />
+            <JobStatus jobId={state.jobId} />
           </div>
         )}
       </div>
@@ -275,27 +290,26 @@ function MusicTool() {
 // ── Chat tool ───────────────────────────────────────────────────────
 
 function ChatTool() {
-  const [messages, setMessages]   = useState<KieChatMessage[]>([]);
-  const [input, setInput]         = useState('');
-  const chat                      = useAiChat();
-  const bottomRef                 = useRef<HTMLDivElement>(null);
+  const state  = useToolsStore((s) => s.chat);
+  const update = useToolsStore((s) => s.set);
+  const chat   = useAiChat();
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, chat.isPending]);
+  }, [state.messages, chat.isPending]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    const userMsg: KieChatMessage = { role: 'user', content: input };
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
-    setInput('');
+    if (!state.input.trim()) return;
+    const userMsg: KieChatMessage = { role: 'user', content: state.input };
+    const updatedMessages = [...state.messages, userMsg];
+    update('chat', { messages: updatedMessages, input: '' });
     try {
       const result = await chat.mutateAsync({ messages: updatedMessages });
-      setMessages([...updatedMessages, { role: 'assistant', content: result.content }]);
+      update('chat', { messages: [...updatedMessages, { role: 'assistant', content: result.content }] });
     } catch {
-      setMessages([...updatedMessages, { role: 'assistant', content: '⚠️ Ошибка при получении ответа. Попробуйте ещё раз.' }]);
+      update('chat', { messages: [...updatedMessages, { role: 'assistant', content: '⚠️ Ошибка при получении ответа. Попробуйте ещё раз.' }] });
     }
   };
 
@@ -303,15 +317,14 @@ function ChatTool() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, flexShrink: 0 }}>ИИ Ассистент</h3>
 
-      {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16, paddingRight: 4 }}>
-        {messages.length === 0 ? (
+        {state.messages.length === 0 ? (
           <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: 40 }}>
             <MessageSquare size={40} style={{ opacity: 0.2, marginBottom: 12 }} />
             <div style={{ fontSize: 13 }}>Задайте вопрос ИИ ассистенту</div>
           </div>
         ) : (
-          messages.map((msg, i) => (
+          state.messages.map((msg, i) => (
             <div
               key={i}
               style={{
@@ -342,21 +355,20 @@ function ChatTool() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <form onSubmit={handleSend} style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
         <input
           className="form-input"
           style={{ flex: 1 }}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+          value={state.input}
+          onChange={(e) => update('chat', { input: e.target.value })}
           placeholder="Спросите что-нибудь..."
           disabled={chat.isPending}
         />
-        <button className="btn btn-primary" type="submit" disabled={chat.isPending || !input.trim()}>
+        <button className="btn btn-primary" type="submit" disabled={chat.isPending || !state.input.trim()}>
           {chat.isPending ? <Spinner size={14} /> : <Send size={14} />}
         </button>
-        {messages.length > 0 && (
-          <button className="btn btn-ghost" type="button" title="Очистить" onClick={() => setMessages([])}>
+        {state.messages.length > 0 && (
+          <button className="btn btn-ghost" type="button" title="Очистить" onClick={() => update('chat', { messages: [] })}>
             <RefreshCw size={14} />
           </button>
         )}
@@ -369,7 +381,6 @@ function ChatTool() {
 
 function JobStatus({ jobId }: { jobId: string }) {
   const { data: job } = useAiJob(jobId);
-
   if (!job) return null;
 
   const statusConfig: Record<string, { label: string; color: string }> = {
@@ -402,12 +413,12 @@ const TOOLS = [
 export default function AiToolsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTool = searchParams.get('tool') ?? 'image';
-
   const setTool = (id: string) => setSearchParams({ tool: id });
 
+  // Используем display:none вместо conditional rendering, чтобы DOM сохранялся
+  // (страховка на случай, если zustand не справится с быстрым переключением).
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 32px)', gap: 0 }}>
-      {/* Left sidebar */}
       <div style={{
         width: 180, flexShrink: 0,
         borderRight: '1px solid var(--border)',
@@ -435,12 +446,11 @@ export default function AiToolsPage() {
         ))}
       </div>
 
-      {/* Tool panel */}
       <div style={{ flex: 1, padding: 24, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        {activeTool === 'image' && <ImageTool />}
-        {activeTool === 'video' && <VideoTool />}
-        {activeTool === 'music' && <MusicTool />}
-        {activeTool === 'chat'  && <ChatTool />}
+        <div style={{ display: activeTool === 'image' ? 'block' : 'none', height: '100%' }}><ImageTool /></div>
+        <div style={{ display: activeTool === 'video' ? 'block' : 'none', height: '100%' }}><VideoTool /></div>
+        <div style={{ display: activeTool === 'music' ? 'block' : 'none', height: '100%' }}><MusicTool /></div>
+        <div style={{ display: activeTool === 'chat'  ? 'flex'  : 'none', flexDirection: 'column', height: '100%', minHeight: 0 }}><ChatTool /></div>
       </div>
     </div>
   );

@@ -57,19 +57,25 @@ export default async function financeRoutes(app: FastifyInstance) {
   // ── GET /api/finance ──────────────────────────────────────────
   app.get(
     '/api/finance',
-    async (req: FastifyRequest<{ Querystring: { project_id?: string; status?: string; category?: string } }>, reply) => {
+    async (req: FastifyRequest<{ Querystring: { project_id?: string; status?: string; category?: string; limit?: string; offset?: string } }>, reply) => {
       const { project_id, status, category } = req.query;
+      const limit  = Math.min(500, Math.max(1, parseInt(req.query.limit  ?? '100', 10) || 100));
+      const offset = Math.max(0,  parseInt(req.query.offset ?? '0', 10) || 0);
 
-      let sql = 'SELECT * FROM finance WHERE 1=1';
+      let where = '1=1';
       const params: unknown[] = [];
+      if (project_id) { where += ' AND project_id = ?'; params.push(project_id); }
+      if (status)     { where += ' AND status = ?';     params.push(status); }
+      if (category)   { where += ' AND category = ?';   params.push(category); }
 
-      if (project_id) { sql += ' AND project_id = ?'; params.push(project_id); }
-      if (status)     { sql += ' AND status = ?';     params.push(status); }
-      if (category)   { sql += ' AND category = ?';   params.push(category); }
+      const total = (queryOne<{ cnt: number }>(db, `SELECT COUNT(*) as cnt FROM finance WHERE ${where}`, params) ?? { cnt: 0 }).cnt;
+      const records = queryAll<FinanceRecord>(
+        db,
+        `SELECT * FROM finance WHERE ${where} ORDER BY date DESC, created_at DESC LIMIT ? OFFSET ?`,
+        [...params, limit, offset],
+      );
 
-      sql += ' ORDER BY date DESC, created_at DESC';
-
-      return reply.send({ ok: true, data: queryAll<FinanceRecord>(db, sql, params) });
+      return reply.send({ ok: true, data: records, meta: { total, limit, offset } });
     },
   );
 

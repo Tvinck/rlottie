@@ -33,26 +33,30 @@ export default async function employeeRoutes(app: FastifyInstance) {
   // ── GET /api/employees ────────────────────────────────────────
   app.get(
     '/api/employees',
-    async (req: FastifyRequest<{ Querystring: { q?: string; department?: string } }>, reply) => {
+    async (req: FastifyRequest<{ Querystring: { q?: string; department?: string; limit?: string; offset?: string } }>, reply) => {
       const { q, department } = req.query;
+      const limit  = Math.min(500, Math.max(1, parseInt(req.query.limit  ?? '100', 10) || 100));
+      const offset = Math.max(0,  parseInt(req.query.offset ?? '0', 10) || 0);
 
-      let sql = 'SELECT * FROM employees WHERE 1=1';
+      let where = '1=1';
       const params: unknown[] = [];
-
       if (q) {
-        sql += ' AND (name LIKE ? OR role LIKE ? OR email LIKE ?)';
+        where += ' AND (name LIKE ? OR role LIKE ? OR email LIKE ?)';
         const like = `%${q}%`;
         params.push(like, like, like);
       }
       if (department) {
-        sql += ' AND department = ?';
+        where += ' AND department = ?';
         params.push(department);
       }
 
-      sql += ' ORDER BY name ASC';
-
-      const employees = queryAll<Employee>(db, sql, params);
-      return reply.send({ ok: true, data: employees });
+      const total = (queryOne<{ cnt: number }>(db, `SELECT COUNT(*) as cnt FROM employees WHERE ${where}`, params) ?? { cnt: 0 }).cnt;
+      const employees = queryAll<Employee>(
+        db,
+        `SELECT * FROM employees WHERE ${where} ORDER BY name ASC LIMIT ? OFFSET ?`,
+        [...params, limit, offset],
+      );
+      return reply.send({ ok: true, data: employees, meta: { total, limit, offset } });
     },
   );
 

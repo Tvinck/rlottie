@@ -154,6 +154,11 @@ CREATE TABLE IF NOT EXISTS audit_log (
 -- ── Индексы для производительности ──────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_users_email        ON users(email);
 CREATE INDEX IF NOT EXISTS idx_employees_user     ON employees(user_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_assignee     ON tasks(assignee_id);
+CREATE INDEX IF NOT EXISTS idx_ai_jobs_kie        ON ai_jobs(kie_task_id);
+CREATE INDEX IF NOT EXISTS idx_ai_jobs_user       ON ai_jobs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_table        ON audit_log(table_name, created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_user         ON audit_log(changed_by, created_at);
 CREATE INDEX IF NOT EXISTS idx_tasks_project      ON tasks(project_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status       ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_finance_project    ON finance(project_id);

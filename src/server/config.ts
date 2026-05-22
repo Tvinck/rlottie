@@ -59,6 +59,11 @@ export const Config = {
 
   // ── Webhook ───────────────────────────────────────────────────
   WEBHOOK_BASE_URL: optional('WEBHOOK_BASE_URL', 'http://localhost:3000'),
+  /** Секрет для верификации webhook-вызовов от KIE.AI. Передаётся в callBackUrl как ?token=… */
+  get WEBHOOK_SECRET() {
+    if (this.IS_PROD) return required('WEBHOOK_SECRET');
+    return optional('WEBHOOK_SECRET', 'dev-webhook-secret-change-me');
+  },
 
   // ── Auth ──────────────────────────────────────────────────────
   get JWT_SECRET() {

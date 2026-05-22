@@ -32,6 +32,10 @@ export function getDb(): DatabaseSync {
   if (!_db) {
     _db = new DatabaseSync(Config.DB_PATH);
 
+    // Wait up to 5s on SQLITE_BUSY before throwing. SQLite is single-writer,
+    // so concurrent writes can briefly block; this avoids spurious errors under load.
+    _db.exec('PRAGMA busy_timeout = 5000');
+
     const schema = readFileSync(SCHEMA_PATH, 'utf-8');
     _db.exec(schema);
 

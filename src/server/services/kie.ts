@@ -99,7 +99,7 @@ interface KieChatResponse {
  * @returns taskId для последующего polling
  */
 export async function generateImage(req: KieImageRequest): Promise<string> {
-  const webhookUrl = `${Config.WEBHOOK_BASE_URL}/api/ai/callback`;
+  const webhookUrl = `${Config.WEBHOOK_BASE_URL}/api/ai/callback?token=${encodeURIComponent(Config.WEBHOOK_SECRET)}`;
 
   const response = await kieFetch<KieTaskResponse>(
     `${Config.KIE_BASE_URL}/market/flux2/pro-text-to-image`,
@@ -125,7 +125,7 @@ export async function generateImage(req: KieImageRequest): Promise<string> {
  * @returns taskId
  */
 export async function generateVideo(req: KieVideoRequest): Promise<string> {
-  const webhookUrl = `${Config.WEBHOOK_BASE_URL}/api/ai/callback`;
+  const webhookUrl = `${Config.WEBHOOK_BASE_URL}/api/ai/callback?token=${encodeURIComponent(Config.WEBHOOK_SECRET)}`;
 
   const response = await kieFetch<KieTaskResponse>(
     `${Config.KIE_BASE_URL}/market/kling/text-to-video`,
@@ -151,7 +151,7 @@ export async function generateVideo(req: KieVideoRequest): Promise<string> {
  * @returns taskId
  */
 export async function generateMusic(req: KieMusicRequest): Promise<string> {
-  const webhookUrl = `${Config.WEBHOOK_BASE_URL}/api/ai/callback`;
+  const webhookUrl = `${Config.WEBHOOK_BASE_URL}/api/ai/callback?token=${encodeURIComponent(Config.WEBHOOK_SECRET)}`;
 
   const response = await kieFetch<KieTaskResponse>(
     `${Config.KIE_BASE_URL}/generate`,
