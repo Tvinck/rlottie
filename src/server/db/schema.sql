@@ -139,6 +139,18 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
+-- ── Журнал аудита (изменения через admin panel) ─────────────────
+CREATE TABLE IF NOT EXISTS audit_log (
+  id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  table_name  TEXT NOT NULL,
+  action      TEXT NOT NULL CHECK (action IN ('create','update','delete')),
+  row_id      TEXT NOT NULL,
+  changed_by  TEXT REFERENCES users(id) ON DELETE SET NULL,
+  old_data    TEXT,   -- JSON snapshot before change
+  new_data    TEXT,   -- JSON snapshot after change
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- ── Индексы для производительности ──────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_users_email        ON users(email);
 CREATE INDEX IF NOT EXISTS idx_employees_user     ON employees(user_id);

@@ -33,8 +33,9 @@ const EmployeesPage = lazy(() => import('@client/pages/EmployeesPage'));
 const TasksPage     = lazy(() => import('@client/pages/TasksPage'));
 const AnalyticsPage = lazy(() => import('@client/pages/AnalyticsPage'));
 const MessagesPage  = lazy(() => import('@client/pages/MessagesPage'));
-const SettingsPage  = lazy(() => import('@client/pages/SettingsPage'));
-const FinancePage   = lazy(() => import('@client/pages/FinancePage'));
+const SettingsPage   = lazy(() => import('@client/pages/SettingsPage'));
+const FinancePage    = lazy(() => import('@client/pages/FinancePage'));
+const DatabasePage   = lazy(() => import('@client/pages/DatabasePage'));
 
 export default function App() {
   return (
@@ -55,6 +56,7 @@ export default function App() {
           <Route path="/analytics"      element={<AnalyticsPage />} />
           <Route path="/finance"        element={<FinancePage />} />
           <Route path="/settings"       element={<SettingsPage />} />
+          <Route path="/database"       element={<DatabasePage />} />
         </Route>
 
         {/* 404 — редирект на главную */}

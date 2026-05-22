@@ -7,7 +7,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Home, MessageSquare, Users, CheckSquare, DollarSign,
-  BarChart2, Settings, Sparkles, LogOut,
+  BarChart2, Settings, Sparkles, LogOut, Database,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { getAuthUser, logout } from '../../auth/auth';
@@ -57,6 +57,7 @@ const NAV: NavSection[] = [
 ];
 
 export function Sidebar() {
+  const user = getAuthUser();
   return (
     <aside className="sidebar">
       {/* Бренд */}
@@ -101,6 +102,21 @@ export function Sidebar() {
         </NavLink>
       </div>
 
+      {/* База данных — только для admin */}
+      {user?.role === 'admin' && (
+        <div className="nav-section">
+          <div className="nav-section-label">Администратор</div>
+          <NavLink
+            to="/database"
+            className={({ isActive }) => clsx('nav-item', isActive && 'active')}
+            style={{ color: '#47C8FF', opacity: 0.9 }}
+          >
+            <Database size={16} />
+            База данных
+          </NavLink>
+        </div>
+      )}
+
       {/* Пользователь */}
       <SidebarUser />
     </aside>
@@ -109,7 +125,7 @@ export function Sidebar() {
 
 function SidebarUser() {
   const navigate = useNavigate();
-  const user     = getAuthUser();
+  const user     = getAuthUser(); // own call — SidebarUser renders independently
 
   const handleLogout = () => {
     logout();
