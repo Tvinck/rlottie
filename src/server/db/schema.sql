@@ -10,6 +10,21 @@
 PRAGMA journal_mode = WAL;   -- Write-Ahead Logging: ускоряет конкурентные запросы
 PRAGMA foreign_keys = ON;    -- Включить проверку внешних ключей
 
+-- ── Пользователи (аутентификация) ────────────────────────────────
+-- Отделены от employees: user = учётная запись, employee = HR-профиль.
+-- Связь опциональная: один user может быть привязан к employee (user_id в employees).
+CREATE TABLE IF NOT EXISTS users (
+  id            TEXT    PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  email         TEXT    NOT NULL UNIQUE COLLATE NOCASE,
+  password_hash TEXT    NOT NULL,
+  salt          TEXT    NOT NULL,
+  name          TEXT    NOT NULL,
+  role          TEXT    NOT NULL DEFAULT 'employee'
+                        CHECK (role IN ('admin','manager','employee')),
+  created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+  updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
 -- ── Проекты ──────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS projects (
   id           TEXT    PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
@@ -27,8 +42,10 @@ CREATE TABLE IF NOT EXISTS projects (
 );
 
 -- ── Сотрудники ───────────────────────────────────────────────────
+-- user_id — опциональная ссылка на учётную запись сотрудника.
 CREATE TABLE IF NOT EXISTS employees (
   id               TEXT    PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  user_id          TEXT    REFERENCES users(id) ON DELETE SET NULL,
   name             TEXT    NOT NULL,
   role             TEXT    NOT NULL,
   email            TEXT    NOT NULL UNIQUE,
@@ -82,11 +99,12 @@ CREATE TABLE IF NOT EXISTS finance (
 );
 
 -- ── Сообщения (чат по проектам) ──────────────────────────────────
+-- author_id ссылается на users(id) — сообщения пишут аутентифицированные пользователи.
 CREATE TABLE IF NOT EXISTS messages (
   id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
   project_id  TEXT REFERENCES projects(id) ON DELETE CASCADE,
   channel     TEXT NOT NULL DEFAULT 'general',
-  author_id   TEXT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+  author_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   author_name TEXT NOT NULL,
   content     TEXT NOT NULL,
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
@@ -95,6 +113,7 @@ CREATE TABLE IF NOT EXISTS messages (
 -- ── AI задачи (очередь KIE.AI) ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS ai_jobs (
   id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  user_id     TEXT REFERENCES users(id) ON DELETE SET NULL,
   type        TEXT NOT NULL,
   status      TEXT NOT NULL DEFAULT 'queued'
                    CHECK (status IN ('queued','processing','success','failed')),
@@ -108,9 +127,10 @@ CREATE TABLE IF NOT EXISTS ai_jobs (
 );
 
 -- ── Уведомления ──────────────────────────────────────────────────
+-- user_id вместо employee_id: уведомления адресованы пользователю (учётной записи).
 CREATE TABLE IF NOT EXISTS notifications (
   id         TEXT    PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
-  employee_id TEXT   REFERENCES employees(id) ON DELETE CASCADE,
+  user_id    TEXT    REFERENCES users(id) ON DELETE CASCADE,
   type       TEXT    NOT NULL DEFAULT 'info'
                      CHECK (type IN ('info','success','warning','error')),
   title      TEXT    NOT NULL,
@@ -120,9 +140,12 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 
 -- ── Индексы для производительности ──────────────────────────────
-CREATE INDEX IF NOT EXISTS idx_tasks_project    ON tasks(project_id);
-CREATE INDEX IF NOT EXISTS idx_tasks_status     ON tasks(status);
-CREATE INDEX IF NOT EXISTS idx_finance_project  ON finance(project_id);
-CREATE INDEX IF NOT EXISTS idx_messages_project ON messages(project_id, channel);
-CREATE INDEX IF NOT EXISTS idx_ai_jobs_status   ON ai_jobs(status);
-CREATE INDEX IF NOT EXISTS idx_notif_employee   ON notifications(employee_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_users_email        ON users(email);
+CREATE INDEX IF NOT EXISTS idx_employees_user     ON employees(user_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_project      ON tasks(project_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_status       ON tasks(status);
+CREATE INDEX IF NOT EXISTS idx_finance_project    ON finance(project_id);
+CREATE INDEX IF NOT EXISTS idx_messages_project   ON messages(project_id, channel);
+CREATE INDEX IF NOT EXISTS idx_messages_author    ON messages(author_id);
+CREATE INDEX IF NOT EXISTS idx_ai_jobs_status     ON ai_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_notif_user         ON notifications(user_id, is_read);

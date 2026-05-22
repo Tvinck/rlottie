@@ -12,6 +12,36 @@ export type ISODateTime = string;
 /** UUID v4 */
 export type UUID = string;
 
+// ── Авторизация ───────────────────────────────────────────────────
+
+/** Публичные данные пользователя (без хэша пароля) */
+export interface UserPublic {
+  id: UUID;
+  email: string;
+  name: string;
+  role: 'admin' | 'manager' | 'employee';
+  created_at: ISODateTime;
+}
+
+/** DTO для входа */
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
+/** DTO для регистрации */
+export interface RegisterDto {
+  email: string;
+  password: string;
+  name: string;
+}
+
+/** Ответ сервера на /api/auth/login и /api/auth/register */
+export interface AuthResponse {
+  token: string;
+  user:  UserPublic;
+}
+
 /** Статус задачи */
 export type TaskStatus = 'backlog' | 'in_progress' | 'review' | 'done';
 

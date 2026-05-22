@@ -19,6 +19,7 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 import { Config } from './config.js';
+import authRoutes     from './routes/auth.js';
 import projectRoutes  from './routes/projects.js';
 import taskRoutes     from './routes/tasks.js';
 import employeeRoutes from './routes/employees.js';
@@ -59,6 +60,7 @@ if (Config.IS_PROD) {
 }
 
 // ── API маршруты ─────────────────────────────────────────────────
+await app.register(authRoutes);
 await app.register(projectRoutes);
 await app.register(taskRoutes);
 await app.register(employeeRoutes);

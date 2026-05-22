@@ -8,13 +8,31 @@
  * (проверяем количество записей перед вставкой).
  */
 
-import { getDb, execute, withTransaction, newId } from '../services/database.js';
+import { getDb, execute, queryOne, withTransaction, newId } from '../services/database.js';
+import { generateSalt, hashPassword } from '../services/auth.js';
 
 const db = getDb();
 
 console.log('🌱 Начало заполнения БД тестовыми данными...');
 
 withTransaction(db, () => {
+
+  // ── Admin пользователь ───────────────────────────────────────
+  const adminEmail = 'admin@bazzar.ru';
+  const existingAdmin = queryOne<{ id: string }>(db, 'SELECT id FROM users WHERE email = ?', [adminEmail]);
+
+  if (!existingAdmin) {
+    const salt = generateSalt();
+    const hash = hashPassword('admin123', salt);
+    const adminId = newId();
+    execute(db,
+      `INSERT INTO users (id, email, password_hash, salt, name, role) VALUES (?, ?, ?, ?, ?, ?)`,
+      [adminId, adminEmail, hash, salt, 'Администратор', 'admin'],
+    );
+    console.log(`  ✓ Admin: ${adminEmail} / пароль: admin123`);
+  } else {
+    console.log('  ℹ️  Admin уже существует');
+  }
 
   // ── Сотрудники ───────────────────────────────────────────────
   const empCount = (db.prepare('SELECT COUNT(*) as c FROM employees').get() as { c: number }).c;

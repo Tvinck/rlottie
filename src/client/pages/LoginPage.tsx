@@ -1,34 +1,34 @@
 /**
  * @file src/client/pages/LoginPage.tsx
- * Страница входа в BAZZAR. Demo-режим: любой email + пароль ≥ 4 символов.
+ * Страница входа/регистрации в BAZZAR.
  *
  * При успешном входе:
- *  - сохраняет AuthUser в localStorage
+ *  - сохраняет JWT и данные пользователя в localStorage
  *  - возвращает на исходный путь (если был редирект от ProtectedRoute)
  *  - иначе → /home
  */
 
 import { useState } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle, UserPlus, User } from 'lucide-react';
 import { Spinner } from '../components/ui/Spinner';
 import { BrandLogo } from '../components/ui/BrandLogo';
-import { login, isAuthenticated } from '../auth/auth';
+import { login, register, isAuthenticated } from '../auth/auth';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from ?? '/home';
 
-  // Если уже залогинен — сразу на главную
   if (isAuthenticated()) {
     return <Navigate to={from} replace />;
   }
 
+  const [mode,     setMode]     = useState<'login' | 'register'>('login');
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
+  const [name,     setName]     = useState('');
   const [showPass, setShowPass] = useState(false);
-  const [remember, setRemember] = useState(true);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
 
@@ -37,13 +37,15 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    await new Promise((r) => setTimeout(r, 500));
-
     try {
-      login(email, password);
+      if (mode === 'login') {
+        await login(email, password);
+      } else {
+        await register(email, password, name);
+      }
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка входа');
+      setError(err instanceof Error ? err.message : 'Ошибка сервера');
       setLoading(false);
     }
   };
@@ -73,16 +75,51 @@ export default function LoginPage() {
 
         {/* Form card */}
         <div className="card" style={{ padding: 28 }}>
-          <div style={{ marginBottom: 24 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, marginBottom: 4 }}>
-              Вход в аккаунт
-            </h2>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-              Введите данные для доступа к панели
-            </div>
+
+          {/* Mode tabs */}
+          <div style={{ display: 'flex', gap: 4, marginBottom: 24, background: 'var(--bg-secondary)', borderRadius: 10, padding: 4 }}>
+            {(['login', 'register'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => { setMode(m); setError(''); }}
+                style={{
+                  flex: 1, height: 34, borderRadius: 7, border: 'none', cursor: 'pointer',
+                  fontSize: 12, fontWeight: 600,
+                  background: mode === m ? 'var(--bg-card)' : 'transparent',
+                  color: mode === m ? 'var(--text-primary)' : 'var(--text-muted)',
+                  boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,.25)' : 'none',
+                  transition: 'all .15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}
+              >
+                {m === 'login' ? <LogIn size={13} /> : <UserPlus size={13} />}
+                {m === 'login' ? 'Войти' : 'Регистрация'}
+              </button>
+            ))}
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={(e) => { void handleSubmit(e); }}>
+
+            {/* Name (register only) */}
+            {mode === 'register' && (
+              <div style={{ marginBottom: 16 }}>
+                <label className="form-label">Имя</label>
+                <div className="field-with-icon">
+                  <User size={15} className="field-icon" />
+                  <input
+                    className="form-input"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Иван Иванов"
+                    autoComplete="name"
+                    autoFocus
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Email */}
             <div style={{ marginBottom: 16 }}>
               <label className="form-label">Email</label>
@@ -95,22 +132,24 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@bazzar.ru"
                   autoComplete="email"
-                  autoFocus
+                  autoFocus={mode === 'login'}
                 />
               </div>
             </div>
 
             {/* Password */}
-            <div style={{ marginBottom: 18 }}>
+            <div style={{ marginBottom: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                 <label className="form-label" style={{ margin: 0 }}>Пароль</label>
-                <a
-                  href="#"
-                  style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}
-                  onClick={(e) => { e.preventDefault(); alert('Восстановление пароля — TODO'); }}
-                >
-                  Забыли?
-                </a>
+                {mode === 'login' && (
+                  <a
+                    href="#"
+                    style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}
+                    onClick={(e) => { e.preventDefault(); alert('Восстановление пароля — TODO'); }}
+                  >
+                    Забыли?
+                  </a>
+                )}
               </div>
               <div className="field-with-icon">
                 <Lock size={15} className="field-icon" />
@@ -119,8 +158,8 @@ export default function LoginPage() {
                   type={showPass ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
+                  placeholder={mode === 'register' ? 'Минимум 6 символов' : '••••••••'}
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 />
                 <button
                   type="button"
@@ -132,17 +171,6 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-
-            {/* Remember me */}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, cursor: 'pointer', fontSize: 12, color: 'var(--text-sub)' }}>
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                style={{ width: 14, height: 14, cursor: 'pointer' }}
-              />
-              Запомнить меня на этом устройстве
-            </label>
 
             {/* Error */}
             {error && (
@@ -172,21 +200,23 @@ export default function LoginPage() {
             >
               {loading ? (
                 <Spinner size={14} />
+              ) : mode === 'login' ? (
+                <><LogIn size={14} />Войти в аккаунт</>
               ) : (
-                <>
-                  <LogIn size={14} />
-                  Войти в аккаунт
-                </>
+                <><UserPlus size={14} />Создать аккаунт</>
               )}
             </button>
           </form>
 
-          {/* Divider + demo hint */}
+          {/* Hint */}
           <div style={{
-            marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border)',
+            marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)',
             textAlign: 'center', fontSize: 11, color: 'var(--text-muted)',
           }}>
-            <strong style={{ color: 'var(--text-sub)' }}>Demo-режим:</strong> любой email + пароль (мин. 4 символа)
+            {mode === 'login'
+              ? <>Нет аккаунта? <button type="button" onClick={() => setMode('register')} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontWeight: 600, fontSize: 11, padding: 0 }}>Зарегистрироваться</button></>
+              : <>Уже есть аккаунт? <button type="button" onClick={() => setMode('login')} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontWeight: 600, fontSize: 11, padding: 0 }}>Войти</button></>
+            }
           </div>
         </div>
 

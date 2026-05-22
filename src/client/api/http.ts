@@ -11,6 +11,7 @@
  */
 
 import type { ApiResponse } from '@shared/types';
+import { getToken, logout } from '../auth/auth';
 
 /** Базовый URL API. В dev Vite проксирует /api → localhost:3000 */
 const BASE_URL = '';
@@ -29,8 +30,9 @@ class ApiError extends Error {
 /**
  * Базовая функция fetch с:
  * - автоматическим JSON-разбором
+ * - JWT-авторизацией (Bearer token из localStorage)
+ * - автоматическим logout при 401
  * - нормализованными ошибками
- * - типизацией через ApiResponse<T>
  */
 async function request<T>(
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
@@ -39,13 +41,22 @@ async function request<T>(
 ): Promise<T> {
   const url = `${BASE_URL}${path}`;
 
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   const res = await fetch(url, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     ...(body !== undefined && { body: JSON.stringify(body) }),
   });
+
+  // Токен истёк или недействителен → разлогинить
+  if (res.status === 401 && !path.startsWith('/api/auth/')) {
+    logout();
+    window.location.href = '/login';
+    throw new ApiError(401, 'Сессия истекла');
+  }
 
   const json = await res.json() as ApiResponse<T>;
 
